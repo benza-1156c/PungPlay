@@ -1,8 +1,8 @@
 use crate::models::{ItemType, SearchResultItem};
 use rusty_ytdl::search::{SearchOptions, SearchResult, YouTube};
 
-#[specta::specta]
 #[tauri::command]
+#[specta::specta]
 pub async fn search_youtube(query: String) -> Result<Vec<SearchResultItem>, String> {
     if query.trim().is_empty() {
         return Err("กรุณาใส่คำค้นหา".to_string());
@@ -22,60 +22,54 @@ pub async fn search_youtube(query: String) -> Result<Vec<SearchResultItem>, Stri
 
     let items = results
         .into_iter()
-        .map(|res| match res {
-            SearchResult::Video(v) => {
-                let thumbnail_url = v
-                    .thumbnails
-                    .into_iter()
-                    .max_by_key(|t| t.width)
-                    .map_or("".to_string(), |t| t.url);
+        .map(|res| {
+            let (item_type, id, title, thumbnails, url, artist, duration, views) = match res {
+                SearchResult::Video(v) => (
+                    ItemType::Video,
+                    v.id,
+                    v.title,
+                    v.thumbnails,
+                    v.url,
+                    v.channel.name,
+                    v.duration_raw,
+                    v.views,
+                ),
+                SearchResult::Playlist(p) => (
+                    ItemType::Playlist,
+                    p.id,
+                    p.name,
+                    p.thumbnails,
+                    p.url,
+                    p.channel.name,
+                    String::new(),
+                    p.views,
+                ),
+                SearchResult::Channel(c) => (
+                    ItemType::Channel,
+                    c.id,
+                    c.name,
+                    c.icon,
+                    c.url,
+                    String::new(),
+                    String::new(),
+                    0,
+                ),
+            };
 
-                SearchResultItem {
-                    item_type: ItemType::Video,
-                    id: v.id,
-                    title: v.title,
-                    thumbnail: thumbnail_url,
-                    url: v.url,
-                    artist: v.channel.name,
-                    duration: v.duration_raw,
-                    views: v.views,
-                }
-            }
-            SearchResult::Playlist(p) => {
-                let thumbnail_url = p
-                    .thumbnails
-                    .into_iter()
-                    .max_by_key(|t| t.width)
-                    .map_or("".to_string(), |t| t.url);
+            let thumbnail = thumbnails
+                .into_iter()
+                .max_by_key(|t| t.width)
+                .map_or_else(String::new, |t| t.url);
 
-                SearchResultItem {
-                    item_type: ItemType::Playlist,
-                    id: p.id,
-                    title: p.name,
-                    thumbnail: thumbnail_url,
-                    url: p.url,
-                    artist: p.channel.name,
-                    duration: "".to_string(),
-                    views: p.views,
-                }
-            }
-            SearchResult::Channel(c) => {
-                let thumbnail_url = c
-                    .icon
-                    .into_iter()
-                    .max_by_key(|t| t.width)
-                    .map_or("".to_string(), |t| t.url);
-
-                SearchResultItem {
-                    item_type: ItemType::Channel,
-                    id: c.id,
-                    title: c.name,
-                    thumbnail: thumbnail_url,
-                    url: c.url,
-                    artist: "".to_string(),
-                    duration: "".to_string(),
-                    views: 0,
-                }
+            SearchResultItem {
+                item_type,
+                id,
+                title,
+                thumbnail,
+                url,
+                artist,
+                duration,
+                views,
             }
         })
         .collect();

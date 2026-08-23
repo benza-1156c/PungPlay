@@ -1,11 +1,12 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 mod commands;
 mod models;
+use tauri_specta::{collect_commands, Builder};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let builder = tauri_specta::Builder::new()
-        .commands(tauri_specta::collect_commands![commands::search_youtube]);
+    let builder =
+        Builder::<tauri::Wry>::new().commands(collect_commands![commands::search_youtube]);
 
     #[cfg(debug_assertions)]
     builder
