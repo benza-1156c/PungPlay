@@ -6,12 +6,45 @@
   import { Search, Play, MoreHorizontal, Shuffle, Radio } from "@lucide/svelte";
   import { Input } from "$lib/components/ui/input/index.js";
   import { Button } from "$lib/components/ui/button/index.js";
+  import { onMount } from "svelte";
 
   let searchQuery = $state("");
   let results = $state<SearchResultItem[]>([]);
   let isLoading = $state(false);
   let errorMsg = $state("");
   let hasSearched = $state(false);
+
+  let featuredArtist = $state<SearchResultItem | null>(null);
+  let featuredSongs = $state<SearchResultItem[]>([]);
+  let featuredAlbums = $state<SearchResultItem[]>([]);
+  let isFeaturedLoading = $state(true);
+
+  function formatViews(views: number): string {
+    if (views >= 1_000_000) return `${(views / 1_000_000).toFixed(1)}M`;
+    if (views >= 1_000) return `${(views / 1_000).toFixed(1)}K`;
+    return views.toString();
+  }
+
+  onMount(async () => {
+    try {
+      const res = await commands.searchYoutube("The Weeknd");
+      if (res.status === "ok") {
+        const data = res.data;
+        featuredArtist =
+          data.find((item) => item.item_type === "channel") || null;
+        featuredSongs = data
+          .filter((item) => item.item_type === "video")
+          .slice(0, 4);
+        featuredAlbums = data
+          .filter((item) => item.item_type === "playlist")
+          .slice(0, 8);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      isFeaturedLoading = false;
+    }
+  });
 
   async function performSearch(event: Event) {
     event.preventDefault();
@@ -35,38 +68,6 @@
       isLoading = false;
     }
   }
-
-  // Dummy Data for the reference UI
-  const topSongs = [
-    {
-      title: "Four loves left",
-      artist: "Angsty Bird",
-      plays: "880K",
-      cover:
-        "https://images.unsplash.com/photo-1614613535308-eb51bd3d2c17?w=100&q=80",
-    },
-    {
-      title: "Your turn",
-      artist: "Angsty Bird",
-      plays: "410K",
-      cover:
-        "https://images.unsplash.com/photo-1614613535308-eb51bd3d2c17?w=100&q=80",
-    },
-    {
-      title: "Every Thursday",
-      artist: "Keeping Quiet",
-      plays: "98K",
-      cover:
-        "https://images.unsplash.com/photo-1493225457124-a1a2a5956093?w=100&q=80",
-    },
-    {
-      title: "Heartwarm",
-      artist: "Ambiguity",
-      plays: "88K",
-      cover:
-        "https://images.unsplash.com/photo-1614613535308-eb51bd3d2c17?w=100&q=80",
-    },
-  ];
 </script>
 
 <div class="flex h-full w-full">
@@ -105,25 +106,27 @@
         {/if}
       </div>
     {:else}
-      <!-- Default Hero State (Matches Reference Image) -->
+      <!-- Default Hero State -->
       <div
         class="relative h-[60vh] min-h-100 w-full bg-yellow-500 overflow-hidden flex flex-col justify-end p-10"
       >
-        <!-- Background Image overlay -->
         <div
           class="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent z-10"
         ></div>
-        <img
-          src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1000&auto=format&fit=crop"
-          alt="Betty Felicio"
-          class="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-90"
-        />
+        {#if featuredArtist}
+          <img
+            src={featuredArtist.thumbnail}
+            alt={featuredArtist.title}
+            class="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-90"
+            referrerpolicy="no-referrer"
+          />
+        {/if}
 
         <div class="relative z-20">
           <h1
             class="text-6xl sm:text-8xl font-black text-white tracking-tighter mb-4"
           >
-            Betty Felicio
+            {featuredArtist?.title || "The Weeknd"}
           </h1>
         </div>
       </div>
@@ -132,13 +135,14 @@
       <div class="p-8">
         <h3 class="text-xl font-bold text-white mb-4">Albums</h3>
         <div class="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">
-          {#each [1, 2, 3, 4, 5] as i}
+          {#each featuredAlbums as album}
             <div class="min-w-40 cursor-pointer group">
               <div class="w-40 h-40 rounded-xl overflow-hidden mb-3 relative">
                 <img
-                  src={`https://images.unsplash.com/photo-1614613535308-eb51bd3d2c17?w=300&q=80&sig=${i}`}
-                  alt="Album"
+                  src={album.thumbnail}
+                  alt={album.title}
                   class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  referrerpolicy="no-referrer"
                 />
                 <div
                   class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
@@ -147,9 +151,11 @@
                 </div>
               </div>
               <p class="font-semibold text-sm text-zinc-100 truncate">
-                Beautiful Up Here!
+                {album.title}
               </p>
-              <p class="text-xs text-zinc-500 mt-1">2023 • Album</p>
+              <p class="text-xs text-zinc-500 mt-1 truncate">
+                {album.artist || "Playlist"}
+              </p>
             </div>
           {/each}
         </div>
@@ -180,13 +186,15 @@
       <!-- Profile Header -->
       <div class="flex items-center gap-4 mb-6">
         <img
-          src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=100&auto=format&fit=crop"
+          src={featuredArtist?.thumbnail ||
+            "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=100&auto=format&fit=crop"}
           alt="Avatar"
           class="w-16 h-16 rounded-full object-cover border border-zinc-800"
+          referrerpolicy="no-referrer"
         />
         <div>
           <h3 class="font-bold text-lg text-white flex items-center gap-1">
-            Betty Felicio
+            {featuredArtist?.title || "The Weeknd"}
             <svg
               class="w-4 h-4 text-blue-400"
               viewBox="0 0 24 24"
@@ -241,15 +249,18 @@
         </div>
 
         <div class="space-y-3">
-          {#each topSongs as song}
+          {#each featuredSongs as song}
             <div
               class="flex items-center gap-3 group cursor-pointer p-1 rounded-md hover:bg-zinc-900 transition-colors"
             >
-              <div class="relative w-10 h-10 rounded-md overflow-hidden">
+              <div
+                class="relative w-10 h-10 rounded-md overflow-hidden shrink-0"
+              >
                 <img
-                  src={song.cover}
+                  src={song.thumbnail}
                   alt="cover"
                   class="w-full h-full object-cover"
+                  referrerpolicy="no-referrer"
                 />
                 <div
                   class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center"
@@ -265,10 +276,12 @@
                 </p>
                 <div class="flex items-center gap-2 mt-0.5">
                   <p class="text-[10px] text-zinc-500 truncate">
-                    {song.artist}
+                    {song.artist || featuredArtist?.title || "Unknown"}
                   </p>
                   <span class="w-1 h-1 bg-zinc-700 rounded-full"></span>
-                  <p class="text-[10px] text-zinc-500">{song.plays} plays</p>
+                  <p class="text-[10px] text-zinc-500">
+                    {formatViews(song.views)} plays
+                  </p>
                 </div>
               </div>
               <button
