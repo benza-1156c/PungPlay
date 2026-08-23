@@ -17,4 +17,8 @@ pub struct SearchResultItem {
     pub title: String,
     pub thumbnail: String,
     pub url: String,
+    pub artist: String,
+    pub duration: String,
+    #[specta(type = u32)]
+    pub views: u64,
 }

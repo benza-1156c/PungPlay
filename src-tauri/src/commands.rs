@@ -1,4 +1,4 @@
-use crate::models::SearchResultItem;
+use crate::models::{ItemType, SearchResultItem};
 use rusty_ytdl::search::{SearchOptions, SearchResult, YouTube};
 
 #[specta::specta]
@@ -31,11 +31,14 @@ pub async fn search_youtube(query: String) -> Result<Vec<SearchResultItem>, Stri
                     .map_or("".to_string(), |t| t.url);
 
                 SearchResultItem {
-                    item_type: crate::models::ItemType::Video,
+                    item_type: ItemType::Video,
                     id: v.id,
                     title: v.title,
                     thumbnail: thumbnail_url,
                     url: v.url,
+                    artist: v.channel.name,
+                    duration: v.duration_raw,
+                    views: v.views,
                 }
             }
             SearchResult::Playlist(p) => {
@@ -46,11 +49,14 @@ pub async fn search_youtube(query: String) -> Result<Vec<SearchResultItem>, Stri
                     .map_or("".to_string(), |t| t.url);
 
                 SearchResultItem {
-                    item_type: crate::models::ItemType::Playlist,
+                    item_type: ItemType::Playlist,
                     id: p.id,
                     title: p.name,
                     thumbnail: thumbnail_url,
                     url: p.url,
+                    artist: p.channel.name,
+                    duration: "".to_string(),
+                    views: p.views,
                 }
             }
             SearchResult::Channel(c) => {
@@ -61,11 +67,14 @@ pub async fn search_youtube(query: String) -> Result<Vec<SearchResultItem>, Stri
                     .map_or("".to_string(), |t| t.url);
 
                 SearchResultItem {
-                    item_type: crate::models::ItemType::Channel,
+                    item_type: ItemType::Channel,
                     id: c.id,
                     title: c.name,
                     thumbnail: thumbnail_url,
                     url: c.url,
+                    artist: "".to_string(),
+                    duration: "".to_string(),
+                    views: 0,
                 }
             }
         })

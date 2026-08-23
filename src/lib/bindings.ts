@@ -16,6 +16,9 @@ export type SearchResultItem = {
 	title: string,
 	thumbnail: string,
 	url: string,
+	artist: string,
+	duration: string,
+	views: number,
 };
 
 /* Tauri Specta runtime */
