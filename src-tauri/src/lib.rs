@@ -4,8 +4,8 @@ mod models;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let builder = tauri_specta::Builder::<tauri::Wry>::new()
-        .commands(tauri_specta::collect_commands![commands::search_youtube,]);
+    let builder = tauri_specta::Builder::new()
+        .commands(tauri_specta::collect_commands![commands::search_youtube]);
 
     #[cfg(debug_assertions)]
     builder

@@ -7,7 +7,6 @@ pub enum ItemType {
     Video,
     Playlist,
     Channel,
-    #[serde(other)]
     Unknown,
 }
 
