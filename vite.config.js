@@ -1,8 +1,7 @@
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
 import { sveltekit } from "@sveltejs/kit/vite";
-
-// @ts-expect-error type error without @types/node package
+import path from "path";
 import process from "node:process";
 
 const host = process.env.TAURI_DEV_HOST;
@@ -25,5 +24,10 @@ export default defineConfig(() => ({
       // 3. tell Vite to ignore watching `src-tauri`
       ignored: ["**/src-tauri/**"]
     }
-  }
+  },
+  resolve: {
+    alias: {
+      $lib: path.resolve("./src/lib"),
+    },
+  },
 }));
