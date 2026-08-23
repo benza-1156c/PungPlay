@@ -12,6 +12,7 @@ pub async fn search_youtube(query: String) -> Result<Vec<SearchResultItem>, Stri
 
     let options = SearchOptions {
         limit: 20,
+        search_type: rusty_ytdl::search::SearchType::Channel,
         ..Default::default()
     };
 
@@ -56,10 +57,14 @@ pub async fn search_youtube(query: String) -> Result<Vec<SearchResultItem>, Stri
                 ),
             };
 
-            let thumbnail = thumbnails
+            let mut thumbnail = thumbnails
                 .into_iter()
                 .max_by_key(|t| t.width)
                 .map_or_else(String::new, |t| t.url);
+
+            if thumbnail.starts_with("//") {
+                thumbnail = format!("https:{}", thumbnail);
+            }
 
             SearchResultItem {
                 item_type,
