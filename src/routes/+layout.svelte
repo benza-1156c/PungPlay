@@ -8,12 +8,14 @@
     Heart,
     Settings,
     Play,
+    Pause,
     SkipBack,
     SkipForward,
     Volume2,
     Search,
     ListMusic,
   } from "@lucide/svelte";
+  import { player } from "$lib/stores/player.svelte.js";
   import { Button } from "$lib/components/ui/button/index.js";
   import { ScrollArea } from "$lib/components/ui/scroll-area/index.js";
   import { Slider } from "$lib/components/ui/slider/index.js";
@@ -49,9 +51,6 @@
       color: "text-purple-500",
     },
   ];
-
-  let volume = $state(75);
-  let progress = $state(35);
 </script>
 
 <div
@@ -158,17 +157,26 @@
   >
     <!-- Now Playing Info -->
     <div class="flex items-center gap-4 w-[30%] min-w-50">
-      <img
-        src="https://images.unsplash.com/photo-1614613535308-eb51bd3d2c17?w=100&q=80"
-        alt="Cover"
-        class="w-14 h-14 rounded-md object-cover shadow-lg"
-      />
+      {#if player.currentTrack?.thumbnail}
+        <img
+          src={player.currentTrack.thumbnail}
+          alt="Cover"
+          class="w-14 h-14 rounded-md object-cover shadow-lg"
+          referrerpolicy="no-referrer"
+        />
+      {:else}
+        <div
+          class="w-14 h-14 rounded-md bg-zinc-900 border border-zinc-800 flex items-center justify-center"
+        >
+          <ListMusic class="w-6 h-6 text-zinc-700" />
+        </div>
+      {/if}
       <div class="overflow-hidden">
         <div class="text-sm font-semibold text-white truncate">
-          Beautiful Up Here!
+          {player.currentTrack?.title || "Nothing Playing"}
         </div>
         <div class="text-xs text-zinc-400 truncate mt-0.5">
-          Betty Felicio • Windswept
+          {player.currentTrack?.artist || "Pick a song to start"}
         </div>
       </div>
     </div>
@@ -180,9 +188,17 @@
           <SkipBack class="w-5 h-5 fill-current" />
         </button>
         <button
-          class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-black hover:scale-105 transition-transform"
+          class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-black hover:scale-105 transition-transform {player.isLoading
+            ? 'opacity-50 cursor-not-allowed'
+            : ''}"
+          disabled={player.isLoading}
+          onclick={() => player.toggle()}
         >
-          <Play class="w-5 h-5 fill-current ml-1" />
+          {#if player.isPlaying}
+            <Pause class="w-5 h-5 fill-current" />
+          {:else}
+            <Play class="w-5 h-5 fill-current ml-1" />
+          {/if}
         </button>
         <button class="text-zinc-400 hover:text-white transition-colors">
           <SkipForward class="w-5 h-5 fill-current" />
@@ -191,16 +207,26 @@
 
       <div class="w-full flex items-center gap-3 mt-2">
         <span class="text-[10px] text-zinc-500 font-medium w-8 text-right"
-          >1:30</span
+          >{Math.floor(((player.progress / 100) * player.duration) / 60) ||
+            0}:{Math.floor(((player.progress / 100) * player.duration) % 60)
+            .toString()
+            .padStart(2, "0") || "00"}</span
         >
         <Slider
           type="single"
-          bind:value={progress}
+          bind:value={player.progress}
+          onValueChange={(v) => player.seek(v)}
           max={100}
           step={1}
           class="w-full"
         />
-        <span class="text-[10px] text-zinc-500 font-medium w-8">3:12</span>
+        <span class="text-[10px] text-zinc-500 font-medium w-8"
+          >{Math.floor(player.duration / 60) || 0}:{Math.floor(
+            player.duration % 60,
+          )
+            .toString()
+            .padStart(2, "0") || "00"}</span
+        >
       </div>
     </div>
 
@@ -209,7 +235,8 @@
       <Volume2 class="w-5 h-5 text-zinc-400" />
       <Slider
         type="single"
-        bind:value={volume}
+        bind:value={player.volume}
+        onValueChange={(v) => player.setVolume(v)}
         max={100}
         step={1}
         class="w-24"

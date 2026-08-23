@@ -11,8 +11,8 @@ pub async fn search_youtube(query: String) -> Result<Vec<SearchResultItem>, Stri
     let youtube = YouTube::new().map_err(|e| format!("สร้าง YouTube Client ไม่สำเร็จ: {}", e))?;
 
     let options = SearchOptions {
-        limit: 20,
-        search_type: rusty_ytdl::search::SearchType::Channel,
+        limit: 30,
+        search_type: rusty_ytdl::search::SearchType::All,
         ..Default::default()
     };
 
@@ -80,4 +80,47 @@ pub async fn search_youtube(query: String) -> Result<Vec<SearchResultItem>, Stri
         .collect();
 
     Ok(items)
+}
+
+use crate::audio::AudioState;
+use std::{env, println};
+use tauri::State;
+
+#[tauri::command]
+#[specta::specta]
+pub async fn play_audio(video_id: String, state: State<'_, AudioState>) -> Result<(), String> {
+    // ปิดระบบเล่นเพลงชั่วคราวตามที่ขอ
+    // TODO: เปลี่ยนไปใช้ไลบรารีอื่นที่ใหม่กว่า (เช่น rustube หรือ yt-dlp)
+    println!("Requested to play: {}", video_id);
+    Err("ระบบเล่นเพลงกำลังปรับปรุง".to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn pause_audio(state: State<'_, AudioState>) {
+    state.pause();
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn resume_audio(state: State<'_, AudioState>) {
+    state.resume();
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn set_volume(volume: f32, state: State<'_, AudioState>) {
+    state.set_volume(volume);
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn seek_audio(position: f32, state: State<'_, AudioState>) {
+    state.seek(position);
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn get_audio_progress(state: State<'_, AudioState>) -> f32 {
+    state.get_position()
 }

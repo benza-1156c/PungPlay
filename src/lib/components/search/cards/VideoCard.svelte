@@ -2,8 +2,9 @@
   import * as Card from "$lib/components/ui/card/index.js";
   import { Badge } from "$lib/components/ui/badge/index.js";
   import * as Avatar from "$lib/components/ui/avatar/index.js";
-  import { SquarePlay, ListVideo, User, Clock, Eye } from "@lucide/svelte";
+  import { SquarePlay, ListVideo, User, Clock, Eye, Play } from "@lucide/svelte";
   import type { SearchResultItem } from "$lib/bindings.js";
+  import { player } from "$lib/stores/player.svelte.js";
 
   interface Props {
     item: SearchResultItem;
@@ -34,6 +35,7 @@
 
 <Card.Root
   class="group bg-neutral-900/60 border-neutral-800/50 overflow-hidden hover:border-cyan-500/40 transition-all duration-300 cursor-pointer rounded-xl hover:shadow-lg hover:shadow-cyan-900/10"
+  onclick={() => player.play(item)}
 >
   <!-- Thumbnail -->
   <div class="relative aspect-video overflow-hidden bg-neutral-950">
@@ -53,6 +55,11 @@
         <Icon class="w-12 h-12" />
       </div>
     {/if}
+
+    <!-- Play Icon Overlay -->
+    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+      <Play class="w-12 h-12 text-white fill-current drop-shadow-lg" />
+    </div>
 
     <!-- Duration badge -->
     {#if item.duration}

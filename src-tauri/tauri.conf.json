@@ -13,8 +13,8 @@
     "windows": [
       {
         "title": "pungplay",
-        "width": 800,
-        "height": 600
+        "width": 1500,
+        "height": 900
       }
     ],
     "security": {
@@ -25,6 +25,9 @@
     "active": true,
     "targets": [
       "deb"
+    ],
+    "externalBin": [
+      "binaries/yt-dlp"
     ],
     "icon": [
       "icons/32x32.png",

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { commands } from "$lib/bindings.js";
+  import * as bindings from "$lib/bindings.js";
   import type { SearchResultItem } from "$lib/bindings.js";
   import SearchResultCard from "$lib/components/search/SearchResultCard.svelte";
   import SearchSkeleton from "$lib/components/search/SearchSkeleton.svelte";
@@ -7,6 +7,7 @@
   import { Input } from "$lib/components/ui/input/index.js";
   import { Button } from "$lib/components/ui/button/index.js";
   import { onMount } from "svelte";
+  import { player } from "$lib/stores/player.svelte.js";
 
   let searchQuery = $state("");
   let results = $state<SearchResultItem[]>([]);
@@ -25,16 +26,30 @@
     return views.toString();
   }
 
-  onMount(async () => {
+  const categories = [
+    "Trending",
+    "Pop",
+    "Hip Hop",
+    "K-Pop",
+    "Jazz",
+    "R&B",
+    "Rock",
+    "Acoustic",
+  ];
+  let activeCategory = $state("Trending");
+
+  async function loadHomeData(query: string) {
+    isFeaturedLoading = true;
+    activeCategory = query;
     try {
-      const res = await commands.searchYoutube("The Weeknd");
+      const res = await bindings.commands.searchYoutube(query + " official");
       if (res.status === "ok") {
         const data = res.data;
         featuredArtist =
-          data.find((item) => item.item_type === "channel") || null;
+          data.find((item) => item.item_type === "channel") || data[0] || null;
         featuredSongs = data
           .filter((item) => item.item_type === "video")
-          .slice(0, 4);
+          .slice(0, 6);
         featuredAlbums = data
           .filter((item) => item.item_type === "playlist")
           .slice(0, 8);
@@ -44,6 +59,10 @@
     } finally {
       isFeaturedLoading = false;
     }
+  }
+
+  onMount(() => {
+    loadHomeData("Trending Music");
   });
 
   async function performSearch(event: Event) {
@@ -56,7 +75,7 @@
     hasSearched = true;
 
     try {
-      const res = await commands.searchYoutube(searchQuery);
+      const res = await bindings.commands.searchYoutube(searchQuery);
       if (res.status === "ok") {
         results = res.data;
       } else {
@@ -106,6 +125,23 @@
         {/if}
       </div>
     {:else}
+      <!-- Category Chips -->
+      <div
+        class="px-10 pt-8 pb-4 flex gap-3 overflow-x-auto custom-scrollbar sticky top-0 z-40 bg-zinc-950/90 backdrop-blur-md"
+      >
+        {#each categories as category}
+          <button
+            class="px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors {activeCategory ===
+            category
+              ? 'bg-yellow-500 text-black'
+              : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700 hover:text-white'}"
+            onclick={() => loadHomeData(category + " music")}
+          >
+            {category}
+          </button>
+        {/each}
+      </div>
+
       <!-- Default Hero State -->
       <div
         class="relative h-[60vh] min-h-100 w-full bg-yellow-500 overflow-hidden flex flex-col justify-end p-10"
@@ -136,7 +172,7 @@
         <h3 class="text-xl font-bold text-white mb-4">Albums</h3>
         <div class="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">
           {#each featuredAlbums as album}
-            <div class="min-w-40 cursor-pointer group">
+            <button class="min-w-40 cursor-pointer group text-left" onclick={() => player.play(album)}>
               <div class="w-40 h-40 rounded-xl overflow-hidden mb-3 relative">
                 <img
                   src={album.thumbnail}
@@ -154,9 +190,9 @@
                 {album.title}
               </p>
               <p class="text-xs text-zinc-500 mt-1 truncate">
-                {album.artist || "Playlist"}
+                {album.artist || "Channel"}
               </p>
-            </div>
+            </button>
           {/each}
         </div>
       </div>
@@ -204,54 +240,19 @@
               /></svg
             >
           </h3>
-          <p class="text-xs text-zinc-400">New Zealand songwriter</p>
         </div>
       </div>
 
-      <div class="flex items-center justify-between mb-8">
-        <div class="text-xs text-zinc-500">
-          <span class="text-white font-medium">79K</span> Followers
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          class="rounded-full border-zinc-800 text-zinc-300 hover:bg-zinc-800 hover:text-white h-8 text-xs"
-          >Follow</Button
-        >
-      </div>
-
-      <!-- About -->
-      <div class="mb-8">
-        <h4 class="font-bold text-white mb-2">About</h4>
-        <p class="text-xs text-zinc-400 leading-relaxed">
-          Hailing from the coastal town of Napier, New Zealand, Betty Felicio
-          blends dreamy alt-pop with earthy acoustic textures and introspective
-          lyrics... <span class="text-white cursor-pointer hover:underline"
-            >More</span
-          >
-        </p>
-      </div>
-
-      <!-- Top Songs -->
       <div>
         <div class="flex items-center justify-between mb-4">
           <h4 class="font-bold text-white">Top Songs</h4>
-          <div class="flex gap-2">
-            <button
-              class="text-xs text-zinc-400 hover:text-white flex items-center gap-1"
-              ><Shuffle class="w-3 h-3" /> Shuffle</button
-            >
-            <button
-              class="text-xs text-zinc-400 hover:text-white flex items-center gap-1"
-              ><Radio class="w-3 h-3" /> Radio</button
-            >
-          </div>
         </div>
 
         <div class="space-y-3">
           {#each featuredSongs as song}
-            <div
-              class="flex items-center gap-3 group cursor-pointer p-1 rounded-md hover:bg-zinc-900 transition-colors"
+            <button
+              class="flex w-full items-center gap-3 group cursor-pointer p-1 rounded-md hover:bg-zinc-900 transition-colors text-left"
+              onclick={() => player.play(song)}
             >
               <div
                 class="relative w-10 h-10 rounded-md overflow-hidden shrink-0"
@@ -284,12 +285,12 @@
                   </p>
                 </div>
               </div>
-              <button
-                class="text-zinc-600 opacity-0 group-hover:opacity-100 hover:text-white px-2"
+              <div
+                class="text-zinc-600 opacity-0 group-hover:opacity-100 hover:text-white px-2 ml-auto"
               >
                 <MoreHorizontal class="w-4 h-4" />
-              </button>
-            </div>
+              </div>
+            </button>
           {/each}
         </div>
       </div>

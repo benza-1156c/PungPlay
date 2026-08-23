@@ -5,6 +5,12 @@ import { invoke as __TAURI_INVOKE } from "@tauri-apps/api/core";
 /** Commands */
 export const commands = {
 	searchYoutube: (query: string) => typedError<SearchResultItem[], string>(__TAURI_INVOKE("search_youtube", { query })),
+	playAudio: (videoId: string) => typedError<null, string>(__TAURI_INVOKE("play_audio", { videoId })),
+	pauseAudio: () => __TAURI_INVOKE<void>("pause_audio"),
+	resumeAudio: () => __TAURI_INVOKE<void>("resume_audio"),
+	setVolume: (volume: number | null) => __TAURI_INVOKE<void>("set_volume", { volume }),
+	seekAudio: (position: number | null) => __TAURI_INVOKE<void>("seek_audio", { position }),
+	getAudioProgress: () => __TAURI_INVOKE<number | null>("get_audio_progress"),
 };
 
 /* Types */

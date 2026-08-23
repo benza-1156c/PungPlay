@@ -26,8 +26,13 @@ rusty_ytdl = "0.7.4"
 tokio = { version = "1.53.1", features = ["full"] }
 reqwest = { version = "0.13.4", features = ["json"] }
 specta = { version = "=2.0.0-rc.25", features = ["derive", "function"] }
-tauri-specta = { version = "=2.0.0-rc.25", features = ["derive", "javascript", "typescript"] }
+tauri-specta = { version = "=2.0.0-rc.25", features = [
+    "derive",
+    "javascript",
+    "typescript",
+] }
 specta-typescript = "0.0.12"
+rodio = { version = "0.19.0", features = ["symphonia-isomp4", "symphonia-all"] }
 
 
 # Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration
