@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
+use specta::Type;
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-#[serde(rename_all = "lowercase")] // เวทมนตร์! มันจะแปลง Video -> "video" ให้อัตโนมัติ
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Type)]
+#[serde(rename_all = "lowercase")]
 pub enum ItemType {
     Video,
     Playlist,
@@ -10,7 +11,7 @@ pub enum ItemType {
     Unknown,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Type)]
 pub struct SearchResultItem {
     pub item_type: ItemType,
     pub id: String,

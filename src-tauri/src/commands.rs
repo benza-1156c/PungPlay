@@ -2,6 +2,7 @@ use crate::models::SearchResultItem;
 use rusty_ytdl::search::{SearchOptions, SearchResult, YouTube};
 
 #[tauri::command]
+#[specta::specta]
 pub async fn search_youtube(query: String) -> Result<Vec<SearchResultItem>, String> {
     if query.trim().is_empty() {
         return Err("กรุณาใส่คำค้นหา".to_string());
