@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-    "tauri": "WEBKIT_DISABLE_DMABUF_RENDERER=1 GDK_BACKEND=x11 tauri"
+    "tauri": "APPIMAGE_EXTRACT_AND_RUN=1 WEBKIT_DISABLE_DMABUF_RENDERER=1 GDK_BACKEND=x11 tauri"
   },
   "license": "MIT",
   "dependencies": {
