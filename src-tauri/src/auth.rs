@@ -1,10 +1,10 @@
-use std::time::Duration;
-use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
+use crate::models::auth::AuthEvent;
+use rusqlite::{Connection, OpenFlags};
+use std::{fs, time::Duration};
+use tauri::{AppHandle, Manager, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
 use tokio::time::sleep;
 
 pub const LOGIN_WINDOW_LABEL: &str = "youtube_login";
-pub const LOGIN_SUCCESS_EVENT: &str = "login-success";
-pub const LOGIN_CLOSED_EVENT: &str = "login-closed";
 
 pub const YOUTUBE_LOGIN_URL: &str =
     "https://accounts.google.com/ServiceLogin?service=youtube&continue=https://www.youtube.com/";
@@ -49,17 +49,23 @@ pub fn spawn_login_watcher(app: AppHandle) {
             if let Some(login_win) = app.get_webview_window(LOGIN_WINDOW_LABEL) {
                 if let Ok(url) = login_win.url() {
                     if is_youtube_home(&url) {
-                        println!("[Auth] YouTube login completed successfully!");
-
-                        let _ = app.emit(LOGIN_SUCCESS_EVENT, ());
-
                         let _ = login_win.close();
+
+                        sleep(Duration::from_millis(500)).await;
+
+                        match extract_youtube_cookie(&app) {
+                            Ok(cookie) => {
+                                println!("{}", cookie);
+                                AuthEvent::Success { cookie: cookie }.emit_event(&app);
+                            }
+                            Err(e) => AuthEvent::Error(e).emit_event(&app),
+                        }
+
                         break;
                     }
                 }
             } else {
-                println!("[Auth] Login window was closed by the user.");
-                let _ = app.emit(LOGIN_CLOSED_EVENT, ());
+                AuthEvent::Closed.emit_event(&app);
                 break;
             }
         }
@@ -67,8 +73,58 @@ pub fn spawn_login_watcher(app: AppHandle) {
 }
 
 #[tauri::command]
+#[specta::specta]
 pub async fn login_youtube(app: AppHandle) -> Result<(), String> {
-    let _window = get_or_create_login_window(&app)?;
-    spawn_login_watcher(app);
-    Ok(())
+    match get_or_create_login_window(&app) {
+        Ok(_) => {
+            spawn_login_watcher(app);
+            Ok(())
+        }
+        Err(e) => {
+            AuthEvent::Error(e.clone()).emit_event(&app);
+            Err(e)
+        }
+    }
+}
+
+pub fn extract_youtube_cookie(app: &AppHandle) -> Result<String, String> {
+    let app_data_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|_| "Failed to get app data dir".to_string())?;
+
+    let db_path = app_data_dir
+        .join("EBWebView")
+        .join("Default")
+        .join("Network")
+        .join("Cookies");
+
+    if !db_path.exists() {
+        return Err("ไม่พบไฟล์ฐานข้อมูล Cookies".to_string());
+    }
+
+    let temp_db_path = app_data_dir.join("Cookies_temp.sqlite");
+    fs::copy(&db_path, &temp_db_path).map_err(|e| format!("Copy DB failed: {}", e))?;
+
+    let conn = Connection::open_with_flags(&temp_db_path, OpenFlags::SQLITE_OPEN_READ_ONLY)
+        .map_err(|e| format!("Failed to open DB: {}", e))?;
+
+    let mut stmt = conn.prepare(
+        "SELECT value FROM cookies WHERE name = '__Secure-3PSID' AND host_key LIKE '%youtube.com%'"
+    ).map_err(|e| format!("SQL Prepare failed: {}", e))?;
+
+    let mut rows = stmt
+        .query([])
+        .map_err(|e| format!("SQL Query failed: {}", e))?;
+
+    let result = if let Some(row) = rows.next().map_err(|e| format!("Row error: {}", e))? {
+        let value: String = row.get(0).map_err(|e| format!("Get value failed: {}", e))?;
+        Ok(value)
+    } else {
+        Err("__Secure-3PSID NotFound".to_string())
+    };
+
+    let _ = fs::remove_file(temp_db_path);
+
+    return result;
 }

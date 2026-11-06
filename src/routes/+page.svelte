@@ -1,9 +1,5 @@
 <script lang="ts">
   import LoginButton from "../components/auth/LoginButton.svelte";
-
-  function handleLoginSuccess() {
-    console.log("Logged in! Ready to fetch feed / playlists.");
-  }
 </script>
 
 <div
@@ -17,6 +13,6 @@
   <div
     class="p-6 bg-zinc-900/60 border border-zinc-800/80 rounded-2xl flex flex-col items-center gap-4 shadow-xl"
   >
-    <LoginButton onLoginSuccess={handleLoginSuccess} />
+    <LoginButton />
   </div>
 </div>
