@@ -6,6 +6,12 @@ import * as __TAURI_EVENT from "@tauri-apps/api/event";
 /** Commands */
 export const commands = {
 	loginYoutube: () => typedError<null, string>(__TAURI_INVOKE("login_youtube")),
+	logoutYoutube: () => typedError<null, string>(__TAURI_INVOKE("logout_youtube")),
+	isAuthenticated: () => typedError<boolean, string>(__TAURI_INVOKE("is_authenticated")),
+	listProfiles: () => typedError<ProfileSummary[], string>(__TAURI_INVOKE("list_profiles")),
+	switchProfile: (profileId: string) => typedError<null, string>(__TAURI_INVOKE("switch_profile", { profileId })),
+	checkYtdlpReady: () => typedError<boolean, string>(__TAURI_INVOKE("check_ytdlp_ready")),
+	triggerYtdlpDownload: () => typedError<null, string>(__TAURI_INVOKE("trigger_ytdlp_download")),
 };
 
 /** Events */
@@ -14,11 +20,26 @@ export const events = {
 };
 
 /* Types */
-export type AppEvent = { domain: "auth"; data: AuthEvent };
+export type AppEvent = { domain: "auth"; data: AuthEvent } | { domain: "ytdlp"; data: YtdlpEvent };
 
 export type AuthEvent = { action: "success"; payload: {
 	cookie: string,
 } } | { action: "closed" } | { action: "error"; payload: string };
+
+export type ProfileSummary = {
+	id: string,
+	name: string,
+	email: string | null,
+	avatar_url: string | null,
+	is_active: boolean,
+};
+
+export type YtdlpEvent = { action: "progress"; payload: {
+	downloaded: number,
+	total: number,
+} } | { action: "complete"; payload: {
+	total: number,
+} } | { action: "ready" } | { action: "error"; payload: string };
 
 /* Tauri Specta runtime */
 async function typedError<T, E>(result: Promise<T>): Promise<{ status: "ok"; data: T } | { status: "error"; error: E }> {

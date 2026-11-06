@@ -1,9 +1,12 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-mod auth;
-mod models;
+#[macro_use]
+mod commands;
+pub mod core;
+pub mod features;
 
-use models::events::AppEvent;
-use tauri_specta::{collect_commands, collect_events, Builder};
+use core::events::AppEvent;
+use tauri::Manager;
+use tauri_specta::{collect_events, Builder};
 
 #[cfg(debug_assertions)]
 fn export_types(builder: &Builder<tauri::Wry>) {
@@ -24,7 +27,7 @@ fn export_types(builder: &Builder<tauri::Wry>) {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let builder = Builder::<tauri::Wry>::new()
-        .commands(collect_commands![auth::login_youtube])
+        .commands(app_commands!())
         .events(collect_events![AppEvent]);
 
     #[cfg(debug_assertions)]
@@ -35,10 +38,29 @@ pub fn run() {
     }
 
     tauri::Builder::default()
-        .plugin(tauri_plugin_opener::init(), tauri_plugin_shell::init())
+        .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_shell::init())
         .invoke_handler(builder.invoke_handler())
         .setup(move |app| {
             builder.mount_events(app);
+            let handle = app.handle().clone();
+            tauri::async_runtime::block_on(async move {
+                let db = core::db::init_db(&handle)
+                    .await
+                    .expect("Failed to initialize SQLite database via SeaORM");
+                handle.manage(db);
+            });
+
+            // Init yt-dlp
+            let ytdlp_handle = app.handle().clone();
+            tauri::async_runtime::spawn(async move {
+                if let Err(e) = features::ytdlp::downloader::ensure_ytdlp_ready(&ytdlp_handle).await
+                {
+                    eprintln!("[Setup] Failed to ensure yt-dlp: {e}");
+                    core::events::YtdlpEvent::Error(e).emit_event(&ytdlp_handle);
+                }
+            });
+
             Ok(())
         })
         .run(tauri::generate_context!())

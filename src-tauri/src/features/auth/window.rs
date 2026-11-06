@@ -1,4 +1,5 @@
-use crate::models::auth::AuthEvent;
+use crate::core::events::AuthEvent;
+use crate::features::auth::account;
 use std::time::Duration;
 use tauri::{AppHandle, Manager, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
 use tokio::time::sleep;
@@ -7,6 +8,7 @@ pub const LOGIN_WINDOW_LABEL: &str = "youtube_login";
 
 pub const YOUTUBE_LOGIN_URL: &str =
     "https://accounts.google.com/ServiceLogin?service=youtube&continue=https://www.youtube.com/";
+
 pub const CHROME_USER_AGENT: &str =
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
@@ -39,7 +41,7 @@ pub fn get_or_create_login_window(app: &AppHandle) -> Result<WebviewWindow, Stri
 
     WebviewWindowBuilder::new(app, LOGIN_WINDOW_LABEL, WebviewUrl::External(parsed_url))
         .title("Login to YouTube")
-        .inner_size(500.0, 500.0)
+        .inner_size(500.0, 600.0)
         .center()
         .user_agent(CHROME_USER_AGENT)
         .data_directory(login_profile_dir)
@@ -57,12 +59,39 @@ pub fn spawn_login_watcher(app: AppHandle) {
                     if is_youtube_home(&url) {
                         match login_win.cookies() {
                             Ok(cookies) => {
-                                for cookie in cookies {
-                                    println!(
-                                        "Cookie Name: {}, Value: {}",
-                                        cookie.name(),
-                                        cookie.value()
+                                let cookie_header =
+                                    crate::features::auth::repository::build_cookie_header(
+                                        &cookies,
                                     );
+
+                                let account_info =
+                                    account::fetch_google_account(&cookie_header).await;
+                                println!(
+                                    "[Auth] Logged in as: {} ({})",
+                                    account_info.name, account_info.id
+                                );
+
+                                let db = app.state::<sea_orm::DatabaseConnection>();
+                                match crate::features::auth::repository::save_profile_cookies(
+                                    &db,
+                                    &account_info.id,
+                                    &account_info.name,
+                                    account_info.email,
+                                    account_info.avatar_url,
+                                    &cookies,
+                                )
+                                .await
+                                {
+                                    Ok(saved_header) => {
+                                        AuthEvent::Success {
+                                            cookie: saved_header,
+                                        }
+                                        .emit_event(&app);
+                                    }
+                                    Err(e) => {
+                                        eprintln!("[Auth] Failed to save profile: {e}");
+                                        AuthEvent::Error(e).emit_event(&app);
+                                    }
                                 }
                             }
                             Err(e) => AuthEvent::Error(e.to_string()).emit_event(&app),
@@ -77,19 +106,4 @@ pub fn spawn_login_watcher(app: AppHandle) {
             }
         }
     });
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn login_youtube(app: AppHandle) -> Result<(), String> {
-    match get_or_create_login_window(&app) {
-        Ok(_) => {
-            spawn_login_watcher(app);
-            Ok(())
-        }
-        Err(e) => {
-            AuthEvent::Error(e.clone()).emit_event(&app);
-            Err(e)
-        }
-    }
 }

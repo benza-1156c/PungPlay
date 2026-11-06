@@ -18,12 +18,18 @@ export async function login() {
   }
 }
 
-export function logout() {
+export async function logout() {
+  await commands.logoutYoutube();
   auth.status = "idle";
   auth.err = null;
 }
 
 export async function initAuth() {
+  const isAuthRes = await commands.isAuthenticated();
+  if (isAuthRes.status === "ok" && isAuthRes.data) {
+    auth.status = "authenticated";
+  }
+
   return await events.appEvent.listen((e) => {
     if (e.payload.domain !== "auth") return;
 
