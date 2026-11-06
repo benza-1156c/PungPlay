@@ -22,9 +22,41 @@ pub fn to_cookie_items(cookies: &[TauriCookie<'_>]) -> Vec<CookieItem> {
 }
 
 pub fn build_cookie_header(cookies: &[TauriCookie<'_>]) -> String {
-    cookies
-        .iter()
-        .map(|c| format!("{}={}", c.name(), c.value()))
+    let mut yt_cookies = std::collections::BTreeMap::new();
+
+    for c in cookies {
+        let domain = c.domain().unwrap_or("");
+        if domain.contains("youtube.com") {
+            yt_cookies.insert(c.name().to_string(), c.value().to_string());
+        }
+    }
+
+    if yt_cookies.is_empty() {
+        for c in cookies {
+            yt_cookies.insert(c.name().to_string(), c.value().to_string());
+        }
+    }
+
+    yt_cookies
+        .into_iter()
+        .map(|(k, v)| format!("{k}={v}"))
+        .collect::<Vec<String>>()
+        .join("; ")
+}
+
+pub fn build_google_cookie_header(cookies: &[TauriCookie<'_>]) -> String {
+    let mut g_cookies = std::collections::BTreeMap::new();
+
+    for c in cookies {
+        let domain = c.domain().unwrap_or("");
+        if domain.contains("google.com") && !domain.contains("youtube") {
+            g_cookies.insert(c.name().to_string(), c.value().to_string());
+        }
+    }
+
+    g_cookies
+        .into_iter()
+        .map(|(k, v)| format!("{k}={v}"))
         .collect::<Vec<String>>()
         .join("; ")
 }

@@ -59,16 +59,30 @@ pub fn spawn_login_watcher(app: AppHandle) {
                     if is_youtube_home(&url) {
                         match login_win.cookies() {
                             Ok(cookies) => {
-                                let cookie_header =
+                                let has_auth = cookies.iter().any(|c| {
+                                    let name = c.name();
+                                    (name == "LOGIN_INFO" || name == "SAPISID" || name == "SID")
+                                        && c.domain().unwrap_or("").contains("youtube.com")
+                                });
+
+                                if !has_auth {
+                                    continue;
+                                }
+
+                                let yt_cookie_header =
                                     crate::features::auth::repository::build_cookie_header(
+                                        &cookies,
+                                    );
+                                let google_cookie_header =
+                                    crate::features::auth::repository::build_google_cookie_header(
                                         &cookies,
                                     );
 
                                 let account_info =
-                                    account::fetch_google_account(&cookie_header).await;
+                                    account::fetch_google_account(&yt_cookie_header, &google_cookie_header).await;
                                 println!(
-                                    "[Auth] Logged in as: {} ({})",
-                                    account_info.name, account_info.id
+                                    "[Auth] Logged in as: {} ({}, email: {:?})",
+                                    account_info.name, account_info.id, account_info.email
                                 );
 
                                 let db = app.state::<sea_orm::DatabaseConnection>();
