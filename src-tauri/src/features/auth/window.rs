@@ -78,12 +78,11 @@ pub fn spawn_login_watcher(app: AppHandle) {
                                         &cookies,
                                     );
 
-                                let account_info =
-                                    account::fetch_google_account(&yt_cookie_header, &google_cookie_header).await;
-                                println!(
-                                    "[Auth] Logged in as: {} ({}, email: {:?})",
-                                    account_info.name, account_info.id, account_info.email
-                                );
+                                let account_info = account::fetch_google_account(
+                                    &yt_cookie_header,
+                                    &google_cookie_header,
+                                )
+                                .await;
 
                                 let db = app.state::<sea_orm::DatabaseConnection>();
                                 match crate::features::auth::repository::save_profile_cookies(
@@ -110,7 +109,8 @@ pub fn spawn_login_watcher(app: AppHandle) {
                             }
                             Err(e) => AuthEvent::Error(e.to_string()).emit_event(&app),
                         }
-                        let _ = login_win.close();
+                        let _ = login_win.clear_all_browsing_data();
+                        let _ = login_win.destroy();
                         break;
                     }
                 }
