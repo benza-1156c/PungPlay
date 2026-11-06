@@ -1,6 +1,5 @@
 use crate::models::auth::AuthEvent;
-use rusqlite::{Connection, OpenFlags};
-use std::{fs, time::Duration};
+use std::time::Duration;
 use tauri::{AppHandle, Manager, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
 use tokio::time::sleep;
 
@@ -32,11 +31,18 @@ pub fn get_or_create_login_window(app: &AppHandle) -> Result<WebviewWindow, Stri
         .parse()
         .map_err(|e| format!("Invalid login URL: {e}"))?;
 
+    let login_profile_dir = app
+        .path()
+        .app_local_data_dir()
+        .map_err(|_| "Failed to get local data dir".to_string())?
+        .join("LoginProfile");
+
     WebviewWindowBuilder::new(app, LOGIN_WINDOW_LABEL, WebviewUrl::External(parsed_url))
         .title("Login to YouTube")
         .inner_size(500.0, 500.0)
         .center()
         .user_agent(CHROME_USER_AGENT)
+        .data_directory(login_profile_dir)
         .build()
         .map_err(|e| format!("Failed to create login window: {e}"))
 }
@@ -49,18 +55,19 @@ pub fn spawn_login_watcher(app: AppHandle) {
             if let Some(login_win) = app.get_webview_window(LOGIN_WINDOW_LABEL) {
                 if let Ok(url) = login_win.url() {
                     if is_youtube_home(&url) {
-                        let _ = login_win.close();
-
-                        sleep(Duration::from_millis(500)).await;
-
-                        match extract_youtube_cookie(&app) {
-                            Ok(cookie) => {
-                                println!("{}", cookie);
-                                AuthEvent::Success { cookie: cookie }.emit_event(&app);
+                        match login_win.cookies() {
+                            Ok(cookies) => {
+                                for cookie in cookies {
+                                    println!(
+                                        "Cookie Name: {}, Value: {}",
+                                        cookie.name(),
+                                        cookie.value()
+                                    );
+                                }
                             }
-                            Err(e) => AuthEvent::Error(e).emit_event(&app),
+                            Err(e) => AuthEvent::Error(e.to_string()).emit_event(&app),
                         }
-
+                        let _ = login_win.close();
                         break;
                     }
                 }
@@ -85,46 +92,4 @@ pub async fn login_youtube(app: AppHandle) -> Result<(), String> {
             Err(e)
         }
     }
-}
-
-pub fn extract_youtube_cookie(app: &AppHandle) -> Result<String, String> {
-    let app_data_dir = app
-        .path()
-        .app_data_dir()
-        .map_err(|_| "Failed to get app data dir".to_string())?;
-
-    let db_path = app_data_dir
-        .join("EBWebView")
-        .join("Default")
-        .join("Network")
-        .join("Cookies");
-
-    if !db_path.exists() {
-        return Err("ไม่พบไฟล์ฐานข้อมูล Cookies".to_string());
-    }
-
-    let temp_db_path = app_data_dir.join("Cookies_temp.sqlite");
-    fs::copy(&db_path, &temp_db_path).map_err(|e| format!("Copy DB failed: {}", e))?;
-
-    let conn = Connection::open_with_flags(&temp_db_path, OpenFlags::SQLITE_OPEN_READ_ONLY)
-        .map_err(|e| format!("Failed to open DB: {}", e))?;
-
-    let mut stmt = conn.prepare(
-        "SELECT value FROM cookies WHERE name = '__Secure-3PSID' AND host_key LIKE '%youtube.com%'"
-    ).map_err(|e| format!("SQL Prepare failed: {}", e))?;
-
-    let mut rows = stmt
-        .query([])
-        .map_err(|e| format!("SQL Query failed: {}", e))?;
-
-    let result = if let Some(row) = rows.next().map_err(|e| format!("Row error: {}", e))? {
-        let value: String = row.get(0).map_err(|e| format!("Get value failed: {}", e))?;
-        Ok(value)
-    } else {
-        Err("__Secure-3PSID NotFound".to_string())
-    };
-
-    let _ = fs::remove_file(temp_db_path);
-
-    return result;
 }
