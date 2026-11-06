@@ -33,6 +33,7 @@
               <Avatar.Image
                 src={auth.activeProfile.avatar_url}
                 alt={auth.activeProfile.name}
+                referrerpolicy="no-referrer"
                 class="object-cover"
               />
             {/if}
@@ -54,6 +55,7 @@
             <Avatar.Image
               src={auth.activeProfile.avatar_url}
               alt={auth.activeProfile.name}
+              referrerpolicy="no-referrer"
               class="object-cover"
             />
           {/if}
@@ -93,7 +95,11 @@
               <div class="flex items-center gap-2.5 min-w-0">
                 <Avatar.Root class="size-6 shrink-0">
                   {#if profile.avatar_url}
-                    <Avatar.Image src={profile.avatar_url} alt={profile.name} />
+                    <Avatar.Image
+                      src={profile.avatar_url}
+                      alt={profile.name}
+                      referrerpolicy="no-referrer"
+                    />
                   {/if}
                   <Avatar.Fallback class="text-[10px]">
                     {getInitials(profile.name)}

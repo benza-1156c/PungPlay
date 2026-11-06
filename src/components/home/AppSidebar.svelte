@@ -3,41 +3,39 @@
   import {
     Compass,
     Flame,
-    Tv,
-    Folder,
-    History,
     Clock,
     ThumbsUp,
     Settings,
-    MessageSquare,
     Play,
+    CircleExclamationPoint,
+    RotateCcwClock,
   } from "@lucide/svelte";
 
   const mainItems = [
     { title: "Explore", icon: Compass },
     { title: "Trending", icon: Flame },
-    { title: "Subscription", icon: Tv },
   ];
 
   const libraryItems = [
-    { title: "Library", icon: Folder },
-    { title: "History", icon: History },
+    { title: "History", icon: RotateCcwClock },
     { title: "Watch later", icon: Clock },
     { title: "Likes videos", icon: ThumbsUp },
   ];
 
   const footerItems = [
     { title: "Settings", icon: Settings },
-    { title: "Send feedback", icon: MessageSquare },
+    { title: "Send feedback", icon: CircleExclamationPoint },
   ];
 </script>
 
 <Sidebar.Root>
-  <Sidebar.Header class="p-4 flex items-center gap-2">
-    <div class="flex items-center justify-center size-7 rounded-lg bg-red-600 text-white">
-      <Play class="size-4 fill-white" />
+  <Sidebar.Header class="p-4 flex flex-row items-center gap-2.5">
+    <div
+      class="flex items-center justify-center size-7 rounded-lg bg-blue-600 text-white shrink-0"
+    >
+      <Play class="size-3.5 fill-white" />
     </div>
-    <span class="font-bold text-lg tracking-tight">YouTube</span>
+    <span class="font-bold text-lg tracking-tight">You</span>
   </Sidebar.Header>
 
   <Sidebar.Content>

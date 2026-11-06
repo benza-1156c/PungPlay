@@ -16,11 +16,10 @@
   });
 </script>
 
+<ModeWatcher defaultMode="dark" />
 <Sidebar.Provider>
   <AppSidebar />
-  <main>
-    <ModeWatcher defaultMode="dark" />
-    <Sidebar.Trigger />
+  <Sidebar.Inset class="min-h-screen">
     {@render children?.()}
-  </main>
+  </Sidebar.Inset>
 </Sidebar.Provider>
