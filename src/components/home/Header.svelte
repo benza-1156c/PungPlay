@@ -3,10 +3,26 @@
   import Input from "$lib/components/ui/input/input.svelte";
   import Account from "./Account.svelte";
   import { Search } from "@lucide/svelte";
+  import { onMount } from "svelte";
+
+  let isScrolled = $state(false);
+
+  onMount(() => {
+    const handleScroll = () => {
+      isScrolled = window.scrollY > 10;
+    };
+
+    handleScroll();
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  });
 </script>
 
 <div
-  class="flex h-16 shrink-0 items-center justify-between gap-4 px-4 border-b"
+  class="flex h-16 shrink-0 items-center justify-between gap-4 px-4 border-b sticky top-0 z-10
+  {isScrolled ? 'bg-background/85' : null}
+  "
 >
   <!-- Left: Sidebar toggle -->
   <div class="flex items-center gap-2">

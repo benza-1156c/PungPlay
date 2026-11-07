@@ -10,8 +10,8 @@ export const commands = {
 	isAuthenticated: () => typedError<boolean, string>(__TAURI_INVOKE("is_authenticated")),
 	listProfiles: () => typedError<ProfileSummary[], string>(__TAURI_INVOKE("list_profiles")),
 	switchProfile: (profileId: string) => typedError<null, string>(__TAURI_INVOKE("switch_profile", { profileId })),
-	fetchYoutubeFeed: () => typedError<FeedVideo[], string>(__TAURI_INVOKE("fetch_youtube_feed")),
-	searchYoutube: (query: string) => typedError<FeedVideo[], string>(__TAURI_INVOKE("search_youtube", { query })),
+	fetchYoutubeFeed: (continuation: string | null) => typedError<FeedResponse, string>(__TAURI_INVOKE("fetch_youtube_feed", { continuation })),
+	searchYoutube: (query: string, continuation: string | null) => typedError<FeedResponse, string>(__TAURI_INVOKE("search_youtube", { query, continuation })),
 	checkYtdlpReady: () => typedError<boolean, string>(__TAURI_INVOKE("check_ytdlp_ready")),
 	triggerYtdlpDownload: () => typedError<null, string>(__TAURI_INVOKE("trigger_ytdlp_download")),
 };
@@ -27,6 +27,11 @@ export type AppEvent = { domain: "auth"; data: AuthEvent } | { domain: "ytdlp"; 
 export type AuthEvent = { action: "success"; payload: {
 	cookie: string,
 } } | { action: "closed" } | { action: "error"; payload: string };
+
+export type FeedResponse = {
+	videos: FeedVideo[],
+	continuation: string | null,
+};
 
 export type FeedVideo = {
 	id: string,

@@ -20,27 +20,66 @@ pub struct FeedVideo {
     pub thumbnail: Option<String>,
 }
 
-#[tauri::command]
-#[specta::specta]
-pub async fn fetch_youtube_feed(app: AppHandle) -> Result<Vec<FeedVideo>, String> {
-    if let Ok(raw_json) =
-        client::post_innertube(&app, "browse", json!({ "browseId": "FEwhat_to_watch" })).await
-    {
-        let _ = crate::utils::log::dump_json("raw_youtube_feed.json", &raw_json);
-        let (videos, _) = parser::parse_feed_videos(&raw_json);
-        if !videos.is_empty() {
-            return Ok(videos);
-        }
-    }
-    fetch_feed_via_ytdlp(&app).await
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct FeedResponse {
+    pub videos: Vec<FeedVideo>,
+    pub continuation: Option<String>,
 }
 
 #[tauri::command]
 #[specta::specta]
-pub async fn search_youtube(app: AppHandle, query: String) -> Result<Vec<FeedVideo>, String> {
-    let raw_json = client::post_innertube(&app, "search", json!({ "query": query })).await?;
-    let (videos, _) = parser::parse_feed_videos(&raw_json);
-    Ok(videos)
+pub async fn fetch_youtube_feed(
+    app: AppHandle,
+    continuation: Option<String>,
+) -> Result<FeedResponse, String> {
+    let payload = match &continuation {
+        Some(token) => json!({ "continuation": token }),
+        None => json!({ "browseId": "FEwhat_to_watch" }),
+    };
+
+    if let Ok(raw_json) = client::post_innertube(&app, "browse", payload).await {
+        let _ = crate::utils::log::dump_json("raw_youtube_feed.json", &raw_json);
+        let (videos, next_token) = parser::parse_feed_videos(&raw_json);
+        if !videos.is_empty() {
+            return Ok(FeedResponse {
+                videos,
+                continuation: next_token,
+            });
+        }
+    }
+
+    if continuation.is_none() {
+        let videos = fetch_feed_via_ytdlp(&app).await?;
+        return Ok(FeedResponse {
+            videos,
+            continuation: None,
+        });
+    }
+
+    Ok(FeedResponse {
+        videos: Vec::new(),
+        continuation: None,
+    })
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn search_youtube(
+    app: AppHandle,
+    query: String,
+    continuation: Option<String>,
+) -> Result<FeedResponse, String> {
+    let payload = match &continuation {
+        Some(token) => json!({ "continuation": token }),
+        None => json!({ "query": query }),
+    };
+
+    let raw_json = client::post_innertube(&app, "search", payload).await?;
+    let (videos, next_token) = parser::parse_feed_videos(&raw_json);
+    Ok(FeedResponse {
+        videos,
+        continuation: next_token,
+    })
 }
 
 async fn fetch_feed_via_ytdlp(app: &AppHandle) -> Result<Vec<FeedVideo>, String> {
