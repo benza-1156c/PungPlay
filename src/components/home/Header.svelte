@@ -20,8 +20,8 @@
 </script>
 
 <div
-  class="flex h-16 shrink-0 items-center justify-between gap-4 px-4 border-b sticky top-0 z-10
-  {isScrolled ? 'bg-background/85' : null}
+  class="flex h-16 shrink-0 items-center justify-between gap-4 px-4 border-b sticky top-8 z-10
+  {isScrolled ? 'bg-background/90' : null}
   "
 >
   <!-- Left: Sidebar toggle -->

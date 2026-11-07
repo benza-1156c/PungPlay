@@ -28,7 +28,7 @@
   ];
 </script>
 
-<Sidebar.Root>
+<Sidebar.Root class="top-8 h-[calc(100svh-2rem)]">
   <Sidebar.Header class="p-4 flex flex-row items-center gap-2.5">
     <div
       class="flex items-center justify-center size-7 rounded-lg bg-blue-600 text-white shrink-0"

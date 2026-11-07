@@ -12,11 +12,14 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "pungplay",
         "width": 1100,
         "height": 700,
         "center": true,
         "resizable": true,
+        "decorations": false,
+        "shadow": true,
         "transparent": true
       }
     ],
