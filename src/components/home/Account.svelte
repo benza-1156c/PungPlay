@@ -7,6 +7,7 @@
   import UserPlusIcon from "@lucide/svelte/icons/user-plus";
   import CheckIcon from "@lucide/svelte/icons/check";
   import LogInIcon from "@lucide/svelte/icons/log-in";
+  import { goto } from "$app/navigation";
 
   function getInitials(name?: string | null): string {
     if (!name) return "U";
@@ -144,7 +145,7 @@
   </DropdownMenu.Root>
 {:else}
   <Button
-    onclick={login}
+    onclick={() => goto("/login")}
     class="bg-red-600 hover:bg-red-500 text-white rounded-full px-4 h-9 gap-2 text-sm font-medium shadow-md transition-all cursor-pointer"
   >
     <LogInIcon class="size-4" />

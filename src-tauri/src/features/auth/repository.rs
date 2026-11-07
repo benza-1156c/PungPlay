@@ -2,7 +2,7 @@ use crate::features::auth::entity::{self, Column, CookieItem, Entity as Profile}
 use chrono::Utc;
 use sea_orm::{
     sea_query::OnConflict, ActiveValue::Set, ColumnTrait, DatabaseConnection, EntityTrait,
-    QueryFilter, QueryOrder,
+    QueryFilter,
 };
 use tauri::webview::Cookie as TauriCookie;
 
@@ -142,8 +142,6 @@ pub async fn has_active_auth(db: &DatabaseConnection) -> Result<bool, String> {
 
 pub async fn list_profiles(db: &DatabaseConnection) -> Result<Vec<entity::Model>, String> {
     Profile::find()
-        .order_by_desc(Column::IsActive)
-        .order_by_asc(Column::Name)
         .all(db)
         .await
         .map_err(|e| format!("Failed to list profiles: {e}"))
@@ -175,16 +173,6 @@ pub async fn delete_profile(db: &DatabaseConnection, profile_id: &str) -> Result
         .exec(db)
         .await
         .map_err(|e| format!("Failed to delete profile {profile_id}: {e}"))?;
-
-    Ok(())
-}
-
-/// Clear all profiles (logout all).
-pub async fn clear_all_profiles(db: &DatabaseConnection) -> Result<(), String> {
-    Profile::delete_many()
-        .exec(db)
-        .await
-        .map_err(|e| format!("Failed to clear all profiles: {e}"))?;
 
     Ok(())
 }

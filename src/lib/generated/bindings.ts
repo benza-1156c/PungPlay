@@ -6,7 +6,6 @@ import * as __TAURI_EVENT from "@tauri-apps/api/event";
 /** Commands */
 export const commands = {
 	loginYoutube: () => typedError<null, string>(__TAURI_INVOKE("login_youtube")),
-	logoutYoutube: () => typedError<null, string>(__TAURI_INVOKE("logout_youtube")),
 	isAuthenticated: () => typedError<boolean, string>(__TAURI_INVOKE("is_authenticated")),
 	listProfiles: () => typedError<ProfileSummary[], string>(__TAURI_INVOKE("list_profiles")),
 	switchProfile: (profileId: string) => typedError<null, string>(__TAURI_INVOKE("switch_profile", { profileId })),

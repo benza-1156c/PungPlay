@@ -28,14 +28,6 @@ pub async fn login_youtube(app: AppHandle) -> Result<(), String> {
 
 #[tauri::command]
 #[specta::specta]
-pub async fn logout_youtube(
-    db: tauri::State<'_, sea_orm::DatabaseConnection>,
-) -> Result<(), String> {
-    crate::features::auth::repository::clear_all_profiles(&db).await
-}
-
-#[tauri::command]
-#[specta::specta]
 pub async fn is_authenticated(
     db: tauri::State<'_, sea_orm::DatabaseConnection>,
 ) -> Result<bool, String> {
@@ -68,4 +60,3 @@ pub async fn switch_profile(
 ) -> Result<(), String> {
     crate::features::auth::repository::switch_profile(&db, &profile_id).await
 }
-
