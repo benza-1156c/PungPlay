@@ -49,7 +49,6 @@ pub struct CommandResult {
     pub output_logs: Option<Vec<ResultLog>>,
 }
 
-// Placeholder สำหรับ ResultLog เนื่องจากไม่ได้ประกาศในไฟล์นี้
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ResultLog {
     pub pipe: String,
@@ -161,13 +160,13 @@ pub struct ExtractedInfo {
     #[serde(flatten)]
     pub format_info: Option<ExtractedFormat>,
 
-    #[serde(rename = "_type")]
+    #[serde(rename = "_type", default)]
     pub type_: ExtractedType,
 
     #[serde(rename = "_version")]
     pub version: Option<ExtractedVersion>,
 
-    #[serde(rename = "id")]
+    #[serde(rename = "id", default)]
     pub id: String,
 
     #[serde(rename = "title")]
@@ -188,10 +187,10 @@ pub struct ExtractedInfo {
     #[serde(rename = "_filename")]
     pub alt_filename: Option<String>,
 
-    #[serde(rename = "ext")]
+    #[serde(rename = "ext", default)]
     pub extension: String,
 
-    #[serde(rename = "format")]
+    #[serde(rename = "format", default)]
     pub format: String,
 
     #[serde(rename = "player_url")]
@@ -283,6 +282,9 @@ pub struct ExtractedInfo {
 
     #[serde(rename = "duration")]
     pub duration: Option<f64>,
+
+    #[serde(rename = "duration_string")]
+    pub duration_string: Option<String>,
 
     #[serde(rename = "view_count")]
     pub view_count: Option<f64>,
@@ -476,7 +478,7 @@ pub struct ExtractedInfo {
     #[serde(rename = "webpage_url_domain")]
     pub webpage_url_domain: Option<String>,
 
-    #[serde(rename = "autonumber")]
+    #[serde(rename = "autonumber", default)]
     pub autonumber: i32,
 
     #[serde(rename = "epoch")]
@@ -492,8 +494,8 @@ pub struct ExtractedInfo {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExtractedFormat {
-    #[serde(rename = "url")]
-    pub url: String,
+    #[serde(rename = "url", default)]
+    pub url: Option<String>,
 
     #[serde(rename = "request_data")]
     pub request_data: Option<String>,

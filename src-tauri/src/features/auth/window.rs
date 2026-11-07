@@ -1,16 +1,10 @@
+use crate::core::constants::{CHROME_USER_AGENT, LOGIN_WINDOW_LABEL, YOUTUBE_LOGIN_URL};
 use crate::core::events::AuthEvent;
 use crate::features::auth::account;
 use std::time::Duration;
 use tauri::{AppHandle, Manager, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
 use tokio::time::sleep;
 
-pub const LOGIN_WINDOW_LABEL: &str = "youtube_login";
-
-pub const YOUTUBE_LOGIN_URL: &str =
-    "https://accounts.google.com/ServiceLogin?service=youtube&continue=https://www.youtube.com/";
-
-pub const CHROME_USER_AGENT: &str =
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
 pub fn is_youtube_home(url: &tauri::Url) -> bool {
     let host_str = url.host_str().unwrap_or("");

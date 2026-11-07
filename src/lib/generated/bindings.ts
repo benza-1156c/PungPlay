@@ -11,6 +11,7 @@ export const commands = {
 	listProfiles: () => typedError<ProfileSummary[], string>(__TAURI_INVOKE("list_profiles")),
 	switchProfile: (profileId: string) => typedError<null, string>(__TAURI_INVOKE("switch_profile", { profileId })),
 	fetchYoutubeFeed: () => typedError<FeedVideo[], string>(__TAURI_INVOKE("fetch_youtube_feed")),
+	searchYoutube: (query: string) => typedError<FeedVideo[], string>(__TAURI_INVOKE("search_youtube", { query })),
 	checkYtdlpReady: () => typedError<boolean, string>(__TAURI_INVOKE("check_ytdlp_ready")),
 	triggerYtdlpDownload: () => typedError<null, string>(__TAURI_INVOKE("trigger_ytdlp_download")),
 };
@@ -32,8 +33,12 @@ export type FeedVideo = {
 	title: string,
 	url: string,
 	duration: number | null,
+	duration_text: string | null,
 	channel: string | null,
+	channel_avatar: string | null,
 	view_count: number | null,
+	view_count_text: string | null,
+	published_time: string | null,
 	thumbnail: string | null,
 };
 

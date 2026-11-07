@@ -1,4 +1,4 @@
-use crate::features::auth::window::CHROME_USER_AGENT;
+use crate::core::constants::{CHROME_USER_AGENT, YT_CLIENT_NAME, YT_CLIENT_VERSION, YT_ORIGIN};
 use sha1::{Digest, Sha1};
 use std::time::Duration;
 
@@ -63,28 +63,27 @@ pub async fn fetch_google_account(cookie_header: &str) -> Result<GoogleAccountIn
         .build()
         .map_err(|e| format!("Failed to build HTTP client: {e}"))?;
 
-    let origin = "https://www.youtube.com";
-    let auth_header = format!("SAPISIDHASH {}", generate_sapisid_hash(&sapisid, origin));
+    let auth_header = format!("SAPISIDHASH {}", generate_sapisid_hash(&sapisid, YT_ORIGIN));
 
     let body = serde_json::json!({
         "context": {
             "client": {
                 "clientName": "WEB",
-                "clientVersion": "2.20261105.05.01"
+                "clientVersion": YT_CLIENT_VERSION
             }
         }
     });
 
     let resp = client
-        .post("https://www.youtube.com/youtubei/v1/guide?prettyPrint=false")
+        .post(format!("{YT_ORIGIN}/youtubei/v1/guide?prettyPrint=false"))
         .header("Cookie", cookie_header)
         .header("Accept-Language", "en-US,en;q=0.9")
         .header("Content-Type", "application/json")
-        .header("Origin", origin)
-        .header("X-Origin", origin)
+        .header("Origin", YT_ORIGIN)
+        .header("X-Origin", YT_ORIGIN)
         .header("Authorization", auth_header)
-        .header("X-Youtube-Client-Name", "1")
-        .header("X-Youtube-Client-Version", "2.20261105.05.01")
+        .header("X-Youtube-Client-Name", YT_CLIENT_NAME)
+        .header("X-Youtube-Client-Version", YT_CLIENT_VERSION)
         .json(&body)
         .send()
         .await
