@@ -31,19 +31,35 @@ pub async fn execute_ytdlp(app: &AppHandle, args: &[&str]) -> Result<String, Str
     cmd.args(args);
 
     let output = cmd.output().await.map_err(|e| e.to_string())?;
-
-    if output.status.success() {
-        if let Ok(updated_cookies) = tokio::fs::read_to_string(&temp_cookie_path).await {
-            let new_header = parse_netscape_to_header(&updated_cookies);
-            let _ = update_db_cookie_header(&db, &new_header).await;
-        }
-    }
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    let stdout = String::from_utf8_lossy(&output.stdout);
 
     if !output.status.success() {
-        return Err(String::from_utf8_lossy(&output.stderr).to_string());
+        if stderr.contains("Sign in to confirm you’re not a bot")
+            || stderr.contains("Login required")
+            || stderr.contains("This content isn't available")
+            || stderr.contains("HTTP Error 401: Unauthorized")
+            || stderr.contains("HTTP Error 403: Forbidden")
+            || stderr.contains("Please sign in")
+        {
+            let _ = logout_active_profile(&db).await;
+            return Err("GOOGLE_SESSION_EXPIRED: กรุณาล็อกอินใหม่".to_string());
+        }
+
+        return Err(format!("yt-dlp error: {}", stderr));
     }
 
-    Ok(String::from_utf8_lossy(&output.stdout).to_string())
+    if let Ok(updated_cookies) = tokio::fs::read_to_string(&temp_cookie_path).await {
+        let new_header = parse_netscape_to_header(&updated_cookies);
+        let _ = update_db_cookie_header(&db, &new_header).await;
+    }
+
+    if stdout.trim().is_empty() {
+        let _ = logout_active_profile(&db).await;
+        return Err("GOOGLE_SESSION_EXPIRED: ได้รับข้อมูลว่างเปล่า กรุณาล็อกอินใหม่".to_string());
+    }
+
+    Ok(stdout.to_string())
 }
 
 fn write_cookies_to_netscape(cookie_header: &str, path: &Path) -> Result<(), String> {
@@ -115,5 +131,21 @@ async fn update_db_cookie_header(db: &DatabaseConnection, new_header: &str) -> R
         active_model.update(db).await.map_err(|e| e.to_string())?;
     }
 
+    Ok(())
+}
+
+async fn logout_active_profile(db: &DatabaseConnection) -> Result<(), String> {
+    let active = Profile::find()
+        .filter(Column::IsActive.eq(true))
+        .one(db)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    if let Some(model) = active {
+        let mut active_model: crate::features::auth::entity::ActiveModel = model.into();
+        active_model.is_active = Set(false);
+        active_model.cookie_header = Set("".to_string());
+        active_model.update(db).await.map_err(|e| e.to_string())?;
+    }
     Ok(())
 }
