@@ -1,8 +1,10 @@
 <script lang="ts">
-  import * as Sidebar from "$lib/components/ui/sidebar/index.js";
+  import { useSidebar } from "$lib/components/ui/sidebar/context.svelte.js";
   import Account from "./Account.svelte";
-  import { Search, Bell } from "@lucide/svelte";
+  import { Search, Bell, Menu } from "@lucide/svelte";
   import { onMount } from "svelte";
+
+  const sidebar = useSidebar();
 
   let isScrolled = $state(false);
   let searchQuery = $state("");
@@ -22,15 +24,21 @@
 </script>
 
 <div
-  class="flex h-16 shrink-0 items-center justify-between gap-4 px-6 border-b border-white/10 sticky top-0 z-20 transition-colors duration-200 {isScrolled
+  class="flex h-16 shrink-0 items-center justify-between gap-4 pl-2 pr-6 border-b border-white/10 sticky top-0 z-20 transition-colors duration-200 {isScrolled
     ? 'bg-black/50 backdrop-blur-3xl shadow-lg shadow-black/25'
     : 'bg-black/20 backdrop-blur-2xl'}"
 >
   <!-- Left: Sidebar toggle -->
   <div class="flex items-center gap-2">
-    <Sidebar.Trigger
-      class="cursor-pointer text-white/80 hover:text-white hover:bg-white/10 p-2 rounded-full transition-colors"
-    />
+    <button
+      type="button"
+      title="Toggle Sidebar"
+      aria-label="Toggle Sidebar"
+      onclick={() => sidebar.toggle()}
+      class="p-2 rounded-xl"
+    >
+      <Menu class="size-5" />
+    </button>
   </div>
 
   <!-- Center: Search bar (visionOS frosted pill) -->
