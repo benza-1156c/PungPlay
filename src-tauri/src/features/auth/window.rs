@@ -16,11 +16,11 @@ pub fn is_youtube_home(url: &tauri::Url) -> bool {
     let host_str = url.host_str().unwrap_or("");
     let host_matches = host_str == "www.youtube.com" || host_str == "youtube.com";
 
-    let path = url.path();
-    let path_is_home = path == "/" || path.is_empty();
-    let not_in_accounts = !path.contains("accounts");
+    let url_str = url.as_str();
+    let not_in_accounts = !url_str.contains("accounts.google.com");
+    let not_in_signin = !url.path().contains("signin");
 
-    host_matches && path_is_home && not_in_accounts
+    host_matches && not_in_accounts && not_in_signin
 }
 
 pub fn get_or_create_login_window(app: &AppHandle) -> Result<WebviewWindow, String> {
@@ -38,6 +38,11 @@ pub fn get_or_create_login_window(app: &AppHandle) -> Result<WebviewWindow, Stri
         .app_local_data_dir()
         .map_err(|_| "Failed to get local data dir".to_string())?
         .join("LoginProfile");
+
+    // Clean previous session directory so each login can authenticate a new account
+    if login_profile_dir.exists() {
+        let _ = std::fs::remove_dir_all(&login_profile_dir);
+    }
 
     WebviewWindowBuilder::new(app, LOGIN_WINDOW_LABEL, WebviewUrl::External(parsed_url))
         .title("Login to YouTube")
@@ -73,43 +78,40 @@ pub fn spawn_login_watcher(app: AppHandle) {
                                     crate::features::auth::repository::build_cookie_header(
                                         &cookies,
                                     );
-                                let google_cookie_header =
-                                    crate::features::auth::repository::build_google_cookie_header(
-                                        &cookies,
-                                    );
 
-                                let account_info = account::fetch_google_account(
-                                    &yt_cookie_header,
-                                    &google_cookie_header,
-                                )
-                                .await;
-
-                                let db = app.state::<sea_orm::DatabaseConnection>();
-                                match crate::features::auth::repository::save_profile_cookies(
-                                    &db,
-                                    &account_info.id,
-                                    &account_info.name,
-                                    account_info.email,
-                                    account_info.avatar_url,
-                                    &cookies,
-                                )
-                                .await
-                                {
-                                    Ok(saved_header) => {
-                                        AuthEvent::Success {
-                                            cookie: saved_header,
+                                match account::fetch_google_account(&yt_cookie_header).await {
+                                    Ok(account_info) => {
+                                        let db = app.state::<sea_orm::DatabaseConnection>();
+                                        match crate::features::auth::repository::save_profile_cookies(
+                                            &db,
+                                            &account_info.id,
+                                            &account_info.name,
+                                            account_info.email,
+                                            account_info.avatar_url,
+                                            &cookies,
+                                        )
+                                        .await
+                                        {
+                                            Ok(saved_header) => {
+                                                AuthEvent::Success {
+                                                    cookie: saved_header,
+                                                }
+                                                .emit_event(&app);
+                                            }
+                                            Err(e) => {
+                                                eprintln!("[Auth] Failed to save profile: {e}");
+                                                AuthEvent::Error(e).emit_event(&app);
+                                            }
                                         }
-                                        .emit_event(&app);
                                     }
                                     Err(e) => {
-                                        eprintln!("[Auth] Failed to save profile: {e}");
+                                        eprintln!("[Auth] Failed to fetch account info: {e}");
                                         AuthEvent::Error(e).emit_event(&app);
                                     }
                                 }
                             }
                             Err(e) => AuthEvent::Error(e.to_string()).emit_event(&app),
                         }
-                        let _ = login_win.clear_all_browsing_data();
                         let _ = login_win.destroy();
                         break;
                     }

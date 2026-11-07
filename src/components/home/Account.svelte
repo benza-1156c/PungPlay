@@ -1,10 +1,9 @@
 <script lang="ts">
-  import { auth, login, logout, switchProfile } from "../../stores/auth.svelte";
+  import { auth, logout, switchProfile } from "../../stores/auth.svelte";
   import * as Avatar from "$lib/components/ui/avatar/index.js";
   import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
   import { Button } from "$lib/components/ui/button/index.js";
   import LogOutIcon from "@lucide/svelte/icons/log-out";
-  import UserPlusIcon from "@lucide/svelte/icons/user-plus";
   import CheckIcon from "@lucide/svelte/icons/check";
   import LogInIcon from "@lucide/svelte/icons/log-in";
   import { goto } from "$app/navigation";
@@ -121,16 +120,6 @@
         </DropdownMenu.Group>
         <DropdownMenu.Separator />
       {/if}
-
-      <!-- Add Account -->
-      <DropdownMenu.Group>
-        <DropdownMenu.Item onclick={login} class="cursor-pointer gap-2">
-          <UserPlusIcon class="size-4" />
-          <span>Add Account</span>
-        </DropdownMenu.Item>
-      </DropdownMenu.Group>
-
-      <DropdownMenu.Separator />
 
       <!-- Sign Out -->
       <DropdownMenu.Item

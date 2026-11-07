@@ -3,6 +3,7 @@
 mod commands;
 pub mod core;
 pub mod features;
+pub mod utils;
 
 use core::events::AppEvent;
 use tauri::Manager;
@@ -54,10 +55,14 @@ pub fn run() {
             // Init yt-dlp
             let ytdlp_handle = app.handle().clone();
             tauri::async_runtime::spawn(async move {
-                if let Err(e) = features::ytdlp::downloader::ensure_ytdlp_ready(&ytdlp_handle).await
-                {
-                    eprintln!("[Setup] Failed to ensure yt-dlp: {e}");
-                    core::events::YtdlpEvent::Error(e).emit_event(&ytdlp_handle);
+                match features::ytdlp::downloader::ensure_ytdlp_ready(&ytdlp_handle).await {
+                    Ok(path) => {
+                        ytdlp_handle.manage(YtdlpState { path });
+                    }
+                    Err(e) => {
+                        eprintln!("[Setup] Failed to ensure yt-dlp: {e}");
+                        core::events::YtdlpEvent::Error(e).emit_event(&ytdlp_handle);
+                    }
                 }
             });
 
@@ -65,4 +70,8 @@ pub fn run() {
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+pub struct YtdlpState {
+    pub path: std::path::PathBuf,
 }

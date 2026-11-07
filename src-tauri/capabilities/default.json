@@ -7,13 +7,7 @@
     "core:default",
     "opener:default",
     {
-      "identifier": "shell:allow-spawn",
-      "allow": [
-        {
-          "name": "binaries/yt-sidecar",
-          "sidecar": true
-        }
-      ]
+      "identifier": "shell:allow-spawn"
     }
   ]
 }

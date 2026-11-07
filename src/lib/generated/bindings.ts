@@ -10,6 +10,7 @@ export const commands = {
 	isAuthenticated: () => typedError<boolean, string>(__TAURI_INVOKE("is_authenticated")),
 	listProfiles: () => typedError<ProfileSummary[], string>(__TAURI_INVOKE("list_profiles")),
 	switchProfile: (profileId: string) => typedError<null, string>(__TAURI_INVOKE("switch_profile", { profileId })),
+	fetchYoutubeFeed: () => typedError<FeedVideo[], string>(__TAURI_INVOKE("fetch_youtube_feed")),
 	checkYtdlpReady: () => typedError<boolean, string>(__TAURI_INVOKE("check_ytdlp_ready")),
 	triggerYtdlpDownload: () => typedError<null, string>(__TAURI_INVOKE("trigger_ytdlp_download")),
 };
@@ -25,6 +26,16 @@ export type AppEvent = { domain: "auth"; data: AuthEvent } | { domain: "ytdlp"; 
 export type AuthEvent = { action: "success"; payload: {
 	cookie: string,
 } } | { action: "closed" } | { action: "error"; payload: string };
+
+export type FeedVideo = {
+	id: string,
+	title: string,
+	url: string,
+	duration: number | null,
+	channel: string | null,
+	view_count: number | null,
+	thumbnail: string | null,
+};
 
 export type ProfileSummary = {
 	id: string,

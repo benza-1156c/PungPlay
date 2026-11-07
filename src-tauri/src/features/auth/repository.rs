@@ -44,23 +44,6 @@ pub fn build_cookie_header(cookies: &[TauriCookie<'_>]) -> String {
         .join("; ")
 }
 
-pub fn build_google_cookie_header(cookies: &[TauriCookie<'_>]) -> String {
-    let mut g_cookies = std::collections::BTreeMap::new();
-
-    for c in cookies {
-        let domain = c.domain().unwrap_or("");
-        if domain.contains("google.com") && !domain.contains("youtube") {
-            g_cookies.insert(c.name().to_string(), c.value().to_string());
-        }
-    }
-
-    g_cookies
-        .into_iter()
-        .map(|(k, v)| format!("{k}={v}"))
-        .collect::<Vec<String>>()
-        .join("; ")
-}
-
 pub async fn save_profile_cookies(
     db: &DatabaseConnection,
     profile_id: &str,
