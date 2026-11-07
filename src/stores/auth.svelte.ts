@@ -11,7 +11,8 @@ export async function loadProfiles() {
   const res = await commands.listProfiles();
   if (res.status === "ok") {
     auth.profiles = res.data;
-    auth.activeProfile = res.data.find((p) => p.is_active) ?? res.data[0] ?? null;
+    auth.activeProfile =
+      res.data.find((p) => p.is_active) ?? res.data[0] ?? null;
     if (auth.activeProfile) {
       auth.status = "authenticated";
     } else {

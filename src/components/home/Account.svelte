@@ -37,9 +37,7 @@
                 class="object-cover"
               />
             {/if}
-            <Avatar.Fallback
-              class="bg-primary/20 text-primary font-semibold text-xs"
-            >
+            <Avatar.Fallback class=" text-primary font-semibold text-xs">
               {getInitials(auth.activeProfile?.name)}
             </Avatar.Fallback>
           </Avatar.Root>
@@ -59,9 +57,7 @@
               class="object-cover"
             />
           {/if}
-          <Avatar.Fallback
-            class="bg-primary/20 text-primary font-semibold text-sm"
-          >
+          <Avatar.Fallback class=" text-primary font-semibold text-sm">
             {getInitials(auth.activeProfile.name)}
           </Avatar.Fallback>
         </Avatar.Root>
