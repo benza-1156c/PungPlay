@@ -17,18 +17,20 @@
 
 <ModeWatcher defaultMode="dark" />
 
-<div class="flex flex-col min-h-screen bg-background text-foreground">
-  <div class="sticky top-0 z-50">
+<div class="flex flex-col h-screen w-screen overflow-hidden bg-background text-foreground select-none">
+  <div class="shrink-0 z-50">
     <TitleBar />
   </div>
 
-  <div class="flex-1 flex flex-col">
+  <div class="flex-1 flex overflow-hidden min-h-0">
     {#if page.data?.hideSidebar}
-      {@render children?.()}
+      <div class="flex-1 h-full overflow-y-auto">
+        {@render children?.()}
+      </div>
     {:else}
-      <Sidebar.Provider>
+      <Sidebar.Provider class="h-full w-full min-h-0">
         <AppSidebar />
-        <Sidebar.Inset class="min-h-[calc(100vh-2rem)]">
+        <Sidebar.Inset class="h-full min-h-0 overflow-y-auto overflow-x-hidden flex-1">
           {@render children?.()}
         </Sidebar.Inset>
       </Sidebar.Provider>

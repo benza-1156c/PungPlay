@@ -8,41 +8,41 @@
 
 :root,
 .dark {
-  --background: oklch(0.25 0 0);
+  --background: rgba(20, 21, 26, 0.82);
   --foreground: oklch(0.98 0 0);
 
-  --card: oklch(1 0 0 / 12%);
+  --card: rgba(255, 255, 255, 0.06);
   --card-foreground: oklch(0.98 0 0);
 
-  --popover: oklch(0.28 0 0 / 85%);
+  --popover: rgba(28, 30, 36, 0.9);
   --popover-foreground: oklch(0.98 0 0);
 
   --primary: oklch(0.98 0 0);
   --primary-foreground: oklch(0.15 0 0);
 
-  --secondary: oklch(1 0 0 / 15%);
+  --secondary: rgba(255, 255, 255, 0.12);
   --secondary-foreground: oklch(0.95 0 0);
 
-  --muted: oklch(1 0 0 / 8%);
-  --muted-foreground: oklch(0.76 0 0);
+  --muted: rgba(255, 255, 255, 0.08);
+  --muted-foreground: rgba(255, 255, 255, 0.65);
 
-  --accent: oklch(1 0 0 / 18%);
+  --accent: rgba(255, 255, 255, 0.14);
   --accent-foreground: oklch(1 0 0);
 
   --destructive: oklch(0.62 0.22 28);
 
-  --border: oklch(1 0 0 / 15%);
-  --input: oklch(0 0 0 / 40%);
-  --ring: oklch(1 0 0 / 30%);
+  --border: rgba(255, 255, 255, 0.1);
+  --input: rgba(255, 255, 255, 0.1);
+  --ring: rgba(255, 255, 255, 0.25);
 
-  --sidebar: oklch(0.28 0 0 / 70%);
-  --sidebar-foreground: oklch(0.95 0 0);
-  --sidebar-primary: oklch(1 0 0 / 22%);
+  --sidebar: rgba(20, 21, 25, 0.75);
+  --sidebar-foreground: rgba(255, 255, 255, 0.9);
+  --sidebar-primary: rgba(255, 255, 255, 0.2);
   --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(1 0 0 / 16%);
+  --sidebar-accent: rgba(255, 255, 255, 0.12);
   --sidebar-accent-foreground: oklch(1 0 0);
-  --sidebar-border: oklch(1 0 0 / 14%);
-  --sidebar-ring: oklch(1 0 0 / 28%);
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: rgba(255, 255, 255, 0.25);
 
   --radius: 0.85rem;
 }
@@ -92,30 +92,29 @@
     background: transparent !important;
   }
   body {
-    @apply text-foreground min-h-screen antialiased selection:bg-white/25;
+    @apply text-foreground min-h-screen antialiased selection:bg-white/25 overflow-hidden;
     background-color: var(--background);
     background-image:
       radial-gradient(
-        circle at 15% 10%,
-        oklch(1 0 0 / 12%) 0%,
+        circle at 20% 0%,
+        rgba(255, 255, 255, 0.07) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        circle at 80% 10%,
+        rgba(255, 255, 255, 0.05) 0%,
         transparent 45%
       ),
       radial-gradient(
-        circle at 50% 0%,
-        oklch(0.85 0 0 / 10%) 0%,
-        transparent 50%
-      ),
-      radial-gradient(circle at 85% 20%, oklch(1 0 0 / 9%) 0%, transparent 50%),
-      radial-gradient(
         circle at 50% 100%,
-        oklch(0.6 0 0 / 12%) 0%,
+        rgba(255, 255, 255, 0.04) 0%,
         transparent 60%
       ),
       linear-gradient(
-        160deg,
-        oklch(0.3 0 0) 0%,
-        oklch(0.25 0 0) 50%,
-        oklch(0.2 0 0) 100%
+        165deg,
+        rgba(28, 30, 36, 0.9) 0%,
+        rgba(20, 21, 26, 0.82) 40%,
+        rgba(15, 16, 20, 0.88) 100%
       );
     background-attachment: fixed;
   }
@@ -182,32 +181,37 @@
   }
 
   .lg-regular {
-    --lg-base: rgba(255, 255, 255, 0.42);
-    --lg-blur: 32px;
-    --lg-sat: 160%;
+    --lg-base: rgba(255, 255, 255, 0.6);
+    --lg-blur: 36px;
+    --lg-sat: 180%;
   }
   .dark .lg-regular {
-    --lg-base: rgba(45, 45, 45, 0.5);
+    --lg-base: rgba(30, 32, 38, 0.78);
+    --lg-blur: 40px;
+    --lg-sat: 180%;
   }
+
   .lg-clear {
-    --lg-base: rgba(255, 255, 255, 0.1);
-    --lg-blur: 16px;
+    --lg-base: rgba(255, 255, 255, 0.15);
+    --lg-blur: 20px;
     --lg-sat: 150%;
   }
   .dark .lg-clear {
-    --lg-base: rgba(45, 45, 45, 0.3);
+    --lg-base: rgba(30, 32, 38, 0.45);
+    --lg-blur: 20px;
+    --lg-sat: 150%;
   }
 
   .lg-tinted {
-    --lg-tint: oklch(0.98 0 0);
+    --lg-tint: var(--primary);
     --lg-tint-amt: 15%;
-    --lg-base: rgba(255, 255, 255, 0.3);
-    --lg-blur: 24px;
-    --lg-sat: 160%;
+    --lg-base: rgba(255, 255, 255, 0.4);
+    --lg-blur: 28px;
+    --lg-sat: 180%;
     color: var(--foreground);
   }
   .dark .lg-tinted {
-    --lg-base: rgba(60, 60, 60, 0.4);
+    --lg-base: rgba(35, 40, 50, 0.75);
   }
 
   .lg-surface {
@@ -229,11 +233,12 @@
     border-radius: 20px;
   }
   .lg-overlay.lg-regular {
-    --lg-base: rgba(255, 255, 255, 0.72);
-    --lg-blur: 36px;
+    --lg-base: rgba(255, 255, 255, 0.8);
+    --lg-blur: 40px;
   }
   .dark .lg-overlay.lg-regular {
-    --lg-base: rgba(35, 35, 35, 0.85);
+    --lg-base: rgba(25, 27, 33, 0.88);
+    --lg-blur: 40px;
   }
 
   .lg-control {

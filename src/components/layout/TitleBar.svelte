@@ -58,7 +58,7 @@
 
 <header
   data-tauri-drag-region
-  class="h-8 w-full bg-background/95 backdrop-blur border-b border-border/40 select-none flex items-center justify-between text-xs text-muted-foreground z-50 shrink-0 font-sans"
+  class="h-8 w-full bg-black/25 backdrop-blur-2xl border-b border-white/10 select-none flex items-center justify-between text-xs text-white/70 z-50 shrink-0 font-sans"
 >
   <!-- Left: Logo & Menus -->
   <div

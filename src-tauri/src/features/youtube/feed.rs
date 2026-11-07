@@ -2,8 +2,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tauri::AppHandle;
 
-use super::{client, models::ExtractedInfo, parser};
-use crate::utils::ytdlp::execute_ytdlp;
+use super::{client, parser};
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 pub struct FeedVideo {
@@ -48,14 +47,6 @@ pub async fn fetch_youtube_feed(
         }
     }
 
-    if continuation.is_none() {
-        let videos = fetch_feed_via_ytdlp(&app).await?;
-        return Ok(FeedResponse {
-            videos,
-            continuation: None,
-        });
-    }
-
     Ok(FeedResponse {
         videos: Vec::new(),
         continuation: None,
@@ -80,54 +71,4 @@ pub async fn search_youtube(
         videos,
         continuation: next_token,
     })
-}
-
-async fn fetch_feed_via_ytdlp(app: &AppHandle) -> Result<Vec<FeedVideo>, String> {
-    let stdout = execute_ytdlp(
-        app,
-        &[
-            "--flat-playlist",
-            "--dump-json",
-            "--no-warnings",
-            "--playlist-end",
-            "30",
-            ":ytrec",
-        ],
-    )
-    .await?;
-
-    let mut videos = Vec::new();
-    for line in stdout.lines() {
-        let line = line.trim();
-        if line.is_empty() {
-            continue;
-        }
-        if let Ok(info) = serde_json::from_str::<ExtractedInfo>(line) {
-            if info.id.starts_with("RD") || info.extractor_key.as_deref() == Some("YoutubeTab") {
-                continue;
-            }
-            let thumbnail_url = info.thumbnail.or_else(|| {
-                info.thumbnails
-                    .and_then(|t| t.last().map(|x| x.url.clone()))
-            });
-
-            videos.push(FeedVideo {
-                id: info.id.clone(),
-                title: info.title.unwrap_or_else(|| "Unknown Title".to_string()),
-                url: info
-                    .webpage_url
-                    .unwrap_or_else(|| format!("https://www.youtube.com/watch?v={}", info.id)),
-                duration: info.duration,
-                duration_text: info.duration_string,
-                channel: info.channel.or(info.uploader),
-                channel_avatar: None,
-                view_count: info.view_count,
-                view_count_text: None,
-                published_time: None,
-                thumbnail: thumbnail_url,
-            });
-        }
-    }
-
-    Ok(videos)
 }

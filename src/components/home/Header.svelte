@@ -1,46 +1,64 @@
 <script lang="ts">
   import * as Sidebar from "$lib/components/ui/sidebar/index.js";
-  import Input from "$lib/components/ui/input/input.svelte";
   import Account from "./Account.svelte";
-  import { Search } from "@lucide/svelte";
+  import { Search, Bell } from "@lucide/svelte";
   import { onMount } from "svelte";
 
   let isScrolled = $state(false);
+  let searchQuery = $state("");
 
   onMount(() => {
-    const handleScroll = () => {
-      isScrolled = window.scrollY > 10;
+    const handleScroll = (e?: Event) => {
+      const scrollY =
+        (e?.target as HTMLElement)?.scrollTop ?? window.scrollY ?? 0;
+      isScrolled = scrollY > 10;
     };
 
     handleScroll();
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { capture: true });
+    return () =>
+      window.removeEventListener("scroll", handleScroll, { capture: true });
   });
 </script>
 
 <div
-  class="flex h-16 shrink-0 items-center justify-between gap-4 px-4 border-b sticky top-8 z-10
-  {isScrolled ? 'bg-background/90' : null}
-  "
+  class="flex h-16 shrink-0 items-center justify-between gap-4 px-6 border-b border-white/10 sticky top-0 z-20 transition-colors duration-200 {isScrolled
+    ? 'bg-black/50 backdrop-blur-3xl shadow-lg shadow-black/25'
+    : 'bg-black/20 backdrop-blur-2xl'}"
 >
   <!-- Left: Sidebar toggle -->
   <div class="flex items-center gap-2">
-    <Sidebar.Trigger class="cursor-pointer" />
+    <Sidebar.Trigger
+      class="cursor-pointer text-white/80 hover:text-white hover:bg-white/10 p-2 rounded-full transition-colors"
+    />
   </div>
 
-  <!-- Center: Search bar -->
-  <div class="flex flex-1 max-w-lg items-center justify-center">
-    <div class="relative w-full">
-      <Search
-        class="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none"
+  <!-- Center: Search bar (visionOS frosted pill) -->
+  <div class="flex flex-1 max-w-xl items-center justify-center">
+    <div
+      class="flex items-center w-full bg-white/10 hover:bg-white/15 focus-within:bg-white/15 focus-within:ring-1 focus-within:ring-white/20 border border-white/15 backdrop-blur-2xl rounded-full px-4 h-10 transition-all duration-200 shadow-inner"
+    >
+      <Search class="size-4 text-white/60 shrink-0 mr-3" />
+      <input
+        type="text"
+        bind:value={searchQuery}
+        class="bg-transparent border-none outline-none text-sm text-white placeholder:text-white/50 w-full"
+        placeholder="Search"
       />
-      <Input class="pl-10 rounded-full h-10" placeholder="Type to search" />
     </div>
   </div>
 
-  <!-- Right: User Account -->
-  <div class="flex items-center gap-3">
-    <Account />
+  <!-- Right: Actions & User Account -->
+  <div class="flex items-center gap-2">
+    <button
+      type="button"
+      title="Notifications"
+      class="p-2 rounded-full text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+    >
+      <Bell class="size-5" />
+    </button>
+    <div class="ml-1">
+      <Account />
+    </div>
   </div>
 </div>
