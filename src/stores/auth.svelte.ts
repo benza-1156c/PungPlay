@@ -35,6 +35,7 @@ export async function login() {
 }
 
 export async function logout() {
+  await commands.logoutYoutube();
   auth.status = "idle";
   auth.err = null;
   auth.profiles = [];

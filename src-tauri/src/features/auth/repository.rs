@@ -176,3 +176,13 @@ pub async fn delete_profile(db: &DatabaseConnection, profile_id: &str) -> Result
 
     Ok(())
 }
+
+pub async fn logout_youtube(db: &DatabaseConnection) -> Result<(), String> {
+    Profile::update_many()
+        .col_expr(Column::IsActive, false.into())
+        .filter(Column::IsActive.eq(true))
+        .exec(db)
+        .await
+        .map_err(|e| format!("Failed to clear all profiles: {e}"))?;
+    Ok(())
+}

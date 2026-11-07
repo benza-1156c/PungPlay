@@ -1,7 +1,12 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
-  import { auth, initAuth, switchProfile, login } from "../../stores/auth.svelte";
+  import {
+    auth,
+    initAuth,
+    switchProfile,
+    login,
+  } from "../../stores/auth.svelte";
   import LoginButton from "../../components/auth/LoginButton.svelte";
   import * as Avatar from "$lib/components/ui/avatar/index.js";
   import { Button } from "$lib/components/ui/button/index.js";
@@ -9,13 +14,11 @@
     Card,
     CardHeader,
     CardTitle,
-    CardDescription,
     CardContent,
   } from "$lib/components/ui/card";
   import {
     LoaderCircle,
     CircleAlert,
-    Music,
     UserPlus,
     ChevronRight,
   } from "@lucide/svelte";
@@ -42,30 +45,16 @@
   }
 </script>
 
-<div
-  class="min-h-screen bg-background text-foreground flex items-center justify-center p-6 selection:bg-red-500/30"
->
+<div class="min-h-screen text-foreground flex items-center justify-center p-6">
   <Card class="w-full max-w-md shadow-2xl border-border/60">
     <CardHeader class="flex flex-col items-center text-center gap-3">
-      <div
-        class="w-14 h-14 rounded-2xl bg-red-600 flex items-center justify-center text-white shadow-lg shadow-red-950/40"
-      >
-        <Music class="w-7 h-7" />
-      </div>
       <CardTitle class="text-2xl">
         {#if auth.profiles.length > 0}
-          เลือกบัญชีผู้ใช้
+          Choose an Account
         {:else}
-          เข้าสู่ระบบ <span class="text-yellow-500">PungPlay</span>
+          Sign in to <span class="text-yellow-500">PungPlay</span>
         {/if}
       </CardTitle>
-      <CardDescription>
-        {#if auth.profiles.length > 0}
-          เลือกโปรไฟล์ YouTube Music ที่ต้องการใช้งาน หรือเพิ่มบัญชีใหม่
-        {:else}
-          เข้าสู่ระบบด้วยบัญชี YouTube Music เพื่อฟังเพลงและจัดการคลังเพลงของคุณ
-        {/if}
-      </CardDescription>
     </CardHeader>
 
     <CardContent class="flex flex-col gap-4">
@@ -75,7 +64,7 @@
           class="flex items-center gap-2 p-3 rounded-xl border border-destructive/50 bg-destructive/10 text-destructive text-sm"
         >
           <CircleAlert class="w-4 h-4 shrink-0" />
-          <span>{auth.err || "เกิดข้อผิดพลาดในการล็อกอิน"}</span>
+          <span>{auth.err || "Authentication error occurred"}</span>
         </div>
       {/if}
 
@@ -85,7 +74,7 @@
           class="flex items-center justify-center gap-3 p-4 rounded-xl border bg-muted text-muted-foreground text-sm"
         >
           <LoaderCircle class="w-4 h-4 text-red-500 animate-spin" />
-          <span>กำลังเปิดหน้าต่างล็อกอิน...</span>
+          <span>Opening login window...</span>
         </div>
       {/if}
 
@@ -125,7 +114,7 @@
                       <span
                         class="text-[10px] bg-emerald-500/10 text-emerald-500 border border-emerald-500/30 px-1.5 py-0.5 rounded-full font-medium"
                       >
-                        ใช้งานอยู่
+                        Active
                       </span>
                     {/if}
                   </div>
@@ -150,7 +139,7 @@
             class="w-full rounded-xl h-11 gap-2 cursor-pointer hover:bg-muted"
           >
             <UserPlus class="w-4 h-4" />
-            <span>เข้าสู่ระบบบัญชีอื่น</span>
+            <span>Sign in with another account</span>
           </Button>
         </div>
       {:else if auth.status !== "logging_in"}
