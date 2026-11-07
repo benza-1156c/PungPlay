@@ -150,7 +150,7 @@
 
             <div class="flex flex-col min-w-0">
               <h3
-                class="font-medium text-sm text-white line-clamp-2 leading-snug group-hover:text-blue-400 transition-colors"
+                class="font-medium text-sm text-white line-clamp-2 leading-snug group-hover:text-primary/70 transition-colors"
                 title={video.title}
               >
                 {video.title}
@@ -159,9 +159,7 @@
                 <div
                   class="flex items-center gap-1 text-xs text-white/60 mt-1 truncate"
                 >
-                  <span class="hover:text-white/90 transition-colors"
-                    >{video.channel}</span
-                  >
+                  <span class=" transition-colors">{video.channel}</span>
                   <span
                     class="inline-flex items-center justify-center size-3 rounded-full bg-white/20 text-white text-[8px]"
                   >

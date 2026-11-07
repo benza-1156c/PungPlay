@@ -1,35 +1,33 @@
 <script lang="ts">
+  import { goto } from "$app/navigation";
+  import { page } from "$app/state";
   import * as Sidebar from "$lib/components/ui/sidebar/index.js";
   import {
     House,
     Flame,
     Tv,
-    Video,
     RotateCcwClock,
     Clock,
     ThumbsUp,
-    Scissors,
     Settings,
-    CircleHelp,
+    CircleQuestionMark,
   } from "@lucide/svelte";
 
-  let activeItem = $state("Home");
-
   const mainItems = [
-    { title: "Home", icon: House },
-    { title: "Shorts", icon: Flame },
-    { title: "Subscriptions", icon: Tv },
+    { title: "Home", icon: House, href: "/" },
+    { title: "Shorts", icon: Flame, href: "/shorts" },
+    { title: "Subscriptions", icon: Tv, href: "/subscriptions" },
   ];
 
   const libraryItems = [
-    { title: "History", icon: RotateCcwClock },
-    { title: "Watch later", icon: Clock },
-    { title: "Liked videos", icon: ThumbsUp },
+    { title: "History", icon: RotateCcwClock, href: "/history" },
+    { title: "Watch later", icon: Clock, href: "/watch-later" },
+    { title: "Liked videos", icon: ThumbsUp, href: "/liked-videos" },
   ];
 
   const footerItems = [
-    { title: "Settings", icon: Settings },
-    { title: "Help & Feedback", icon: CircleHelp },
+    { title: "Settings", icon: Settings, href: "/settings" },
+    { title: "Help & Feedback", icon: CircleQuestionMark, href: "/help" },
   ];
 </script>
 
@@ -55,9 +53,11 @@
           {#each mainItems as item (item.title)}
             <Sidebar.MenuItem>
               <Sidebar.MenuButton
-                onclick={() => (activeItem = item.title)}
-                class="rounded-xl px-3 py-2 text-sm transition-all {activeItem ===
-                item.title
+                onclick={() => {
+                  if (item.href) goto(item.href);
+                }}
+                class="rounded-xl px-3 py-2 text-sm transition-all {page.url
+                  .pathname === item.href
                   ? 'bg-white/15 text-white font-medium shadow-sm backdrop-blur-md'
                   : 'text-white/70 hover:text-white hover:bg-white/10'}"
               >
@@ -79,9 +79,11 @@
           {#each libraryItems as item (item.title)}
             <Sidebar.MenuItem>
               <Sidebar.MenuButton
-                onclick={() => (activeItem = item.title)}
-                class="rounded-xl px-3 py-2 text-sm transition-all {activeItem ===
-                item.title
+                onclick={() => {
+                  if (item.href) goto(item.href);
+                }}
+                class="rounded-xl px-3 py-2 text-sm transition-all {page.url
+                  .pathname === item.href
                   ? 'bg-white/15 text-white font-medium shadow-sm backdrop-blur-md'
                   : 'text-white/70 hover:text-white hover:bg-white/10'}"
               >
@@ -103,9 +105,11 @@
           {#each footerItems as item (item.title)}
             <Sidebar.MenuItem>
               <Sidebar.MenuButton
-                onclick={() => (activeItem = item.title)}
-                class="rounded-xl px-3 py-2 text-sm transition-all {activeItem ===
-                item.title
+                onclick={() => {
+                  if (item.href) goto(item.href);
+                }}
+                class="rounded-xl px-3 py-2 text-sm transition-all {page.url
+                  .pathname === item.href
                   ? 'bg-white/15 text-white font-medium shadow-sm backdrop-blur-md'
                   : 'text-white/70 hover:text-white hover:bg-white/10'}"
               >
